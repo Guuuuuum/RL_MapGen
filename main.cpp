@@ -2,97 +2,109 @@
 #include <cstdlib>
 #include <algorithm>
 #include <vector>
+#include <assert.h>
 
-bool IsBound(int w, int h, int x, int y)
+class Tile
 {
-    if (x == 0 || x == w - 1)
-        return true;
-
-    if (y == 0 || y == h - 1)
-        return true;
-
-    return false;
-}
-
-void DrawBounds(std::vector<char>& map, int w, int h)
-{
-    size_t map_size = w*h;
-    for (size_t i = 0; i < map_size; i++)
+public:
+    Tile():Tile(0, 0) {}
+    Tile(int in_x, int in_y) : x(in_x), y(in_y) {}
+    char character = '.';
+    bool is_border(int width, int height) 
     {
-        if (IsBound(w, h, i%w, i/w))
-            map[i]='#';
+        if (x == 0 || x == (width-1) )
+            return true;
+        if (y == 0 || y == (height-1) )
+            return true;
+
+        return false;
     }
-}
 
-// http://roguebasin.com/index.php/Articles#Programming_languages
-// symmetry Box Rooms
-void DrawBoxRooms(std::vector<char>& map, int w, int h)
+    int x = 0;
+    int y = 0;
+};
+
+class Map
 {
-    // random boxes
-    const int map_cent_x = (w-1)/2;
-    const int map_cent_y = (h-1)/2;
-    const int box_width = 5;
-    const int box_height = 5;
-
-    // const int pos_x = std::rand() % (w-1);
-    const int pos_x = map_cent_x;
-    const int pos_y = map_cent_y;
-
-    const int box_x_min = std::clamp(pos_x - (int)std::floor(box_width/2.0), 0, w);
-    const int box_x_max = std::clamp(pos_x + (int)std::round(box_width/2.0), 0, w);
-    const int box_y_min = std::clamp(pos_y - (int)std::floor(box_height/2.0), 0, h);
-    const int box_y_max = std::clamp(pos_y + (int)std::round(box_height/2.0), 0, h);
-
-    const int actual_size_x = box_x_max - box_x_min;
-    const int actual_size_y = box_y_max - box_y_min;
-
-    for (size_t i = 0; i < actual_size_x * actual_size_y; i++)
+public:
+    Map() = delete;
+    Map(int size_x, int size_y) : width(size_x), height(size_y), tiles(size_x * size_y) 
     {
-        map[ box_x_min+(i%actual_size_x) + (box_y_min+(i/actual_size_x))*w ] = '#';
+        size_t tile_num = tiles.size();
+        for (size_t i = 0; i < tile_num; i++)
+        {
+            tiles[i].x = static_cast<int>(i%width);
+            tiles[i].y = static_cast<int>(i/width);
+        }
     }
-}
 
-// templated rooms with herringbone patterns
-void DrawTemplatedFloor()
-{
+    Tile& get_tile(const int x, const int y)
+    { 
+        assert(width >= x);
+        assert(height >= y);
 
-}
+        return tiles[x + width*y];
+    };
 
-// Cellular automata rooms
-void Cave()
-{
-
-}
-
-std::vector<char> Generate(const int w, const int h)
-{
-    std::vector<char> map(w*h);
-
-    size_t map_size = w*h;
-    
-    for (size_t i = 0; i < map_size; i++)
-        map[i]='.';
-
-    DrawBoxRooms(map, w, h);
-    DrawBounds(map, w, h);
-    return map;
-}
-
-void PrintMap(std::vector<char>& map, int w)
-{
-    size_t map_size = map.size();
-    for (size_t i = 0; i < map_size; i++)
+    void print()
     {
-        std::cout << map[i];
-
-        if ((i+1) % w == 0)
-            std::cout << '\n';
+        size_t tile_num = tiles.size();
+        for (size_t i = 0; i < tile_num; i++)
+        {
+            std::cout << tiles[i].character;
+            if ((i+1) % width == 0)
+                std::cout << '\n';
+        }
     }
-}
+
+    void draw_border()
+    {
+        for (Tile& tile : tiles)
+        {
+            if (tile.is_border(width, height))
+                tile.character = '#';
+        }
+    }
+
+    std::vector<Tile> tiles;
+
+    int width;
+    int height;
+};
+
+struct Room
+{
+    int cp_x;
+    int cp_y;
+    int width;
+    int height;
+
+    void clamp_size(int map_width, int map_height)
+    {
+        width = std::clamp(cp_x + width, 0, map_width-1);
+        height = std::clamp(cp_y + height, 0, map_height-1);
+    }
+};
+
+class BSPDungeon
+{
+    BSPDungeon(Map& map);
+    void Generate()
+    {
+
+    };
+    std::vector<Room> rooms;
+    std::vector<std::shared_ptr<Tile>> walkable_floors;
+};
 
 int main(int, char**) {
 
-    PrintMap(Generate(80, 25), 80);
+    Map map(80,25);
+
+    map.draw_border();
+
+    map.get_tile(79, 24).character = '$';
+    map.print();
 
     return 0;
 }
