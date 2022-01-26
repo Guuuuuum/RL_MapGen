@@ -39,12 +39,16 @@ class BSPDungeon
 
 int main(int, char**) 
 {
-
     Map map(v2(80,25));
     map.draw_border();
 
     RLUtil::AStar astar(map);
-    astar.draw_way(v2(0, 0), v2(79, 24));
+    std::vector<v2> way = astar.draw_way(v2(1, 1), v2(78, 23));
+    for (v2 pos : way)
+    {
+        map.get_tile(pos).character = '!';
+    }
+    
     
     map.print();
 

@@ -9,15 +9,6 @@ public:
     Tile():Tile(v2(0, 0)) {}
     Tile(v2 in_pos) : pos(in_pos) {}
     char character = '.';
-    bool is_border(v2 size) 
-    {
-        if (pos.x == 0 || pos.x == (size.x-1) )
-            return true;
-        if (pos.y == 0 || pos.y == (size.y-1) )
-            return true;
-
-        return false;
-    }
 
     v2 pos;
 };
@@ -36,13 +27,20 @@ public:
         }
     }
 
+    Tile& get_tile(const v2 pos)
+    {
+        return get_tile(pos.x, pos.y);
+    };
     Tile& get_tile(const int x, const int y)
     { 
-        assert(size.x >= x);
-        assert(size.x >= y);
+        assert(size.x >= x || x < 0);
+        assert(size.y >= y || y < 0);
 
         return tiles[x + size.x*y];
     };
+
+    template <typename T>
+    static T& get_by_coord(std::vector<T>& map, v2 size, v2 coord);
 
     void print()
     {
@@ -55,11 +53,31 @@ public:
         }
     }
 
+    bool is_border(v2 pos) 
+    {
+        if (pos.x == 0 || pos.x == (size.x-1) )
+            return true;
+        if (pos.y == 0 || pos.y == (size.y-1) )
+            return true;
+
+        return false;
+    }
+
+    bool in_bounds(v2 pos) 
+    {
+        if (pos.x < 0 || pos.x >= size.x )
+            return false;
+        if (pos.y < 0 || pos.y >= size.y )
+            return false;
+
+        return true;
+    }
+
     void draw_border()
     {
         for (Tile& tile : tiles)
         {
-            if (tile.is_border(size))
+            if (is_border(tile.pos))
                 tile.character = '#';
         }
     }
@@ -68,3 +86,12 @@ public:
 
     v2 size;
 };
+
+// template <typename T>
+// T& Map::get_by_coord(std::vector<T>& map, v2 size, v2 coord)
+// { 
+//     assert(size.x >= coord.x || coord.x < 0);
+//     assert(size.y >= coord.y || coord.y < 0);
+
+//     return map[coord.x + size.x*coord.y];
+// };

@@ -1,6 +1,6 @@
 #pragma once
 
-struct v2
+class v2
 {
 public:
     v2() : v2(0, 0){};
@@ -21,5 +21,15 @@ public:
 	v2 operator-(const v2& rh) const
     {
         return v2(x - rh.x, y - rh.y);
+    };
+
+	bool operator==(const v2& rh) const
+    {
+        return (rh.x == x && rh.y == y);
+    };
+
+	bool operator!=(const v2& rh) const
+    {
+        return !(rh.x == x && rh.y == y);
     };
 };
