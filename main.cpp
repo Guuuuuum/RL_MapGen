@@ -42,6 +42,16 @@ int main(int, char**)
     Map map(v2(80,25));
     map.draw_border();
 
+    // test_draw wall
+    for (size_t i = 0; i < map.size.y / 3; i++)
+    {
+        for (size_t ii = 0; ii < map.size.x / 5; ii++)
+        {
+            // map.get_tile(ii, i).character = '#';
+        }
+    }
+    
+
     RLUtil::AStar astar(map);
     std::vector<v2> way = astar.draw_way(v2(1, 1), v2(78, 23));
     for (v2 pos : way)

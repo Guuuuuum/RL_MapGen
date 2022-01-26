@@ -40,7 +40,13 @@ public:
     };
 
     template <typename T>
-    static T& get_by_coord(std::vector<T>& map, v2 size, v2 coord);
+    T& get_by_coord(std::vector<T>& map, v2 coord)
+    {
+        assert(size.x >= coord.x || coord.x < 0);
+        assert(size.y >= coord.y || coord.y < 0);
+
+        return map[coord.x + size.x*coord.y];
+    }
 
     void print()
     {
@@ -86,12 +92,3 @@ public:
 
     v2 size;
 };
-
-// template <typename T>
-// T& Map::get_by_coord(std::vector<T>& map, v2 size, v2 coord)
-// { 
-//     assert(size.x >= coord.x || coord.x < 0);
-//     assert(size.y >= coord.y || coord.y < 0);
-
-//     return map[coord.x + size.x*coord.y];
-// };

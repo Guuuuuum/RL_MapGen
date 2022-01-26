@@ -4,10 +4,11 @@
 #include "map.h"
 #include "directions.h"
 
+// https://github.com/marukrap/RoguelikeTutorial2020/blob/master/Sources/Engine/AStar.hpp
 namespace RLUtil
 {
 
-inline int tile_distance(const v2& start, const v2& end)
+inline int distance_RL(const v2& start, const v2& end)
 {
     const v2 delta = { std::abs(end.x - start.x), std::abs(end.y - start.y) };
     return std::max(delta.x, delta.y);
@@ -51,7 +52,7 @@ public:
         std::vector<NaviOverlay> navi_overlay(map.size.x * map.size.y);
         
         possible_queue.push( start );
-        navi_overlay[start.x + map.size.x*start.y].cost = 0;
+        map.get_by_coord<NaviOverlay>(navi_overlay, start).cost = 0;
 
         while (!possible_queue.empty())
         {
@@ -65,17 +66,18 @@ public:
                 while (search_pos != start)
                 {
                     path.emplace_back(search_pos);
-                    search_pos = navi_overlay[search_pos.x + map.size.x*search_pos.y].pos_before;
+                    
+                    search_pos = map.get_by_coord<NaviOverlay>(navi_overlay, search_pos).pos_before;
                 }
                 
                 path.emplace_back(start);
                 return path;
             }
 
-            NaviOverlay& nav_node = navi_overlay[search_pos.x + map.size.x*search_pos.y];
+            NaviOverlay& nav_node = map.get_by_coord<NaviOverlay>(navi_overlay, search_pos);
             nav_node.is_checked = true;
 
-            map.tiles[search_pos.x + map.size.x*search_pos.y].character = '*';
+            map.get_tile(search_pos.x, search_pos.y).character = '*';
 
             for (auto dir : Directions::OCT_DIRECTIONS)
             {
@@ -84,9 +86,9 @@ public:
                 if (!map.in_bounds(to_check))
                     continue;
 
-                NaviOverlay& nav_next_node = navi_overlay[to_check.x + map.size.x*to_check.y];
+                NaviOverlay& nav_next_node = map.get_by_coord<NaviOverlay>(navi_overlay, to_check);
                 // todo else conditions
-                if (!nav_next_node.is_passable ||
+                if (map.get_tile(to_check.x, to_check.y).character == '#' ||// !nav_next_node.is_passable ||
                     nav_next_node.is_checked)
                 {
                     continue;
@@ -95,7 +97,7 @@ public:
                 float move_cost = nav_node.cost + dir.move_cost;
                 if (move_cost < nav_next_node.cost)
                 {
-                    possible_queue.push( {to_check, move_cost+RLUtil::tile_distance(to_check, end) } );
+                    possible_queue.push( {to_check, move_cost+RLUtil::distance_RL(to_check, end) } );
                     nav_next_node.cost = move_cost;
                     nav_next_node.pos_before = search_pos;
                 }
