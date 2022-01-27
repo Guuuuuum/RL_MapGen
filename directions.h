@@ -23,15 +23,6 @@ public:
     static const std::array<Directions, 8> OCT_DIRECTIONS;
 };
 
-
-inline const float nw_cost = 15.0f;
-inline const float n_cost = 10.0f;
-inline const float ne_cost = 15.0f;
-inline const float w_cost = 10.0f;
-inline const float e_cost = 10.0f;
-inline const float sw_cost = 15.0f;
-inline const float s_cost = 10.0f;
-inline const float se_cost = 15.0f;
 inline const Directions Directions::nw =    {{-1 ,-1}, 15.0f};
 inline const Directions Directions::n =     {{0  ,-1}, 10.0f};
 inline const Directions Directions::ne =    {{1  ,-1}, 15.0f};

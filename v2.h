@@ -32,4 +32,9 @@ public:
     {
         return !(rh.x == x && rh.y == y);
     };
+
+    bool operator<(const v2& rh) const
+    {
+        return std::sqrt(x*x + y*y) < std::sqrt(rh.x*rh.x + rh.y*rh.y);
+    };
 };

@@ -10,13 +10,14 @@
 #include "map.h"
 #include "astar.h"
 
-struct Room
+class Room
 {
-    v2 pos;
+public:
+    Room(v2 in_pos, v2 in_size) : pos(in_pos), size(in_size) {};
+    v2 pos; //pivot is left-up.
     v2 size;
 
-    bool is_passable = true;
-
+    static const v2 MIN_SIZE;
     void clamp_size(v2 map_size)
     {
         size.x = std::clamp(pos.x + size.x, 0, map_size.x-1);
@@ -24,16 +25,36 @@ struct Room
     }
 };
 
+inline const v2 Room::MIN_SIZE = v2(4, 4);
+
 class BSPDungeon
 {
+public:
     BSPDungeon(Map& in_map) : map(in_map) {}
     Map& map;
+private:
     std::vector<Room> rooms;
     std::vector<std::shared_ptr<Tile>> walkable_floors;
 
-    void Generate()
+public:
+    void generate(Room in_room, const int depth)
     {
+        rooms.reserve( static_cast<size_t>(std::powl(2, depth)) );
+        std::vector<Room> div_rooms = devide_room(in_room);
+        rooms.insert(rooms.end(), div_rooms.begin(), div_rooms.end() );
+    };
+private:
+    std::vector<Room> devide_room(Room room)
+    {
+        std::vector<Room> div_rooms;
 
+        if (room.size < Room::MIN_SIZE)
+        {
+            div_rooms.push_back(room);
+            return div_rooms;
+        }
+
+        return div_rooms;
     };
 };
 
@@ -42,15 +63,8 @@ int main(int, char**)
     Map map(v2(80,25));
     map.draw_border();
 
-    // test_draw wall
-    for (size_t i = 0; i < map.size.y / 3; i++)
-    {
-        for (size_t ii = 0; ii < map.size.x / 5; ii++)
-        {
-            // map.get_tile(ii, i).character = '#';
-        }
-    }
-    
+    BSPDungeon bspmap(map);
+    bspmap.generate({ {0, 0}, map.size}, 3);
 
     RLUtil::AStar astar(map);
     std::vector<v2> way = astar.draw_way(v2(1, 1), v2(78, 23));
