@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <assert.h>
 #include "v2.h"
 
 class Tile
