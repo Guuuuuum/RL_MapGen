@@ -40,21 +40,56 @@ public:
     void generate(Room in_room, const int depth)
     {
         rooms.reserve( static_cast<size_t>(std::powl(2, depth)) );
-        std::vector<Room> div_rooms = devide_room(in_room);
-        rooms.insert(rooms.end(), div_rooms.begin(), div_rooms.end() );
+
+        std::vector<Room> bsp_spaces;
+        divide_room(bsp_spaces, in_room, depth);
+
+        // draw random size rooms inside bsp spaces 
+        for (auto space : bsp_spaces)
+        {
+            for (int i = 0; i < space.size.x; i++)
+            {
+                map.get_tile(space.pos + v2(i, 0)).character = 'J';
+            }
+            for (int i = 1; i < space.size.y; i++)
+            {
+                map.get_tile(space.pos + v2(0, i)).character = 'J';
+            }
+        }
+        
     };
 private:
-    std::vector<Room> devide_room(Room room)
+    void divide_room(std::vector<Room>& spaces, Room room, int depth)
     {
-        std::vector<Room> div_rooms;
-
-        if (room.size < Room::MIN_SIZE)
+        if (depth == 0 || room.size < Room::MIN_SIZE)
         {
-            div_rooms.push_back(room);
-            return div_rooms;
+            spaces.emplace_back(room);
+            return;
         }
 
-        return div_rooms;
+        // cut by width/height ratio. it looks better
+        if (room.size.x > static_cast<float>(room.size.y) * 2.0f )
+        {
+            int hf_width = room.size.x/2;
+            
+            divide_room(spaces, Room(room.pos, v2(hf_width, room.size.y)), depth - 1);
+
+            if (room.pos.x % 2 != 0)
+                divide_room(spaces, Room(room.pos + v2(hf_width, 0), v2(hf_width + 1, room.size.y)), depth - 1);
+            else
+                divide_room(spaces, Room(room.pos + v2(hf_width, 0), v2(hf_width, room.size.y)), depth - 1);
+        }
+        else
+        {
+            int hf_height = room.size.y/2;
+            
+            divide_room(spaces, Room(room.pos, v2(room.size.x, hf_height)), depth - 1);
+
+            if (room.pos.x % 2 != 0)
+                divide_room(spaces, Room(room.pos + v2(0, hf_height), v2(room.size.x, hf_height + 1)), depth - 1);
+            else
+                divide_room(spaces, Room(room.pos + v2(0, hf_height), v2(room.size.x, hf_height)), depth - 1);
+        }
     };
 };
 
@@ -66,12 +101,12 @@ int main(int, char**)
     BSPDungeon bspmap(map);
     bspmap.generate({ {0, 0}, map.size}, 3);
 
-    RLUtil::AStar astar(map);
-    std::vector<v2> way = astar.draw_way(v2(1, 1), v2(78, 23));
-    for (v2 pos : way)
-    {
-        map.get_tile(pos).character = '!';
-    }
+    // RLUtil::AStar astar(map);
+    // std::vector<v2> way = astar.draw_way(v2(1, 1), v2(78, 23));
+    // for (v2 pos : way)
+    // {
+    //     map.get_tile(pos).character = '!';
+    // }
     
     
     map.print();
