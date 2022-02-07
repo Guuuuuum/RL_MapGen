@@ -5,11 +5,11 @@
 #include "v2.h"
 #include "map.h"
 #include "astar.h"
-#include "generation.h"
+#include "bsp_dungeon.h"
 
 int main(int, char**) 
 {
-    Map map(v2(80,25));
+    Map map(v2(50,50));
     // map.draw_border();
 
     BSPDungeon bspmap(map);

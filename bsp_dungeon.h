@@ -1,42 +1,20 @@
 #pragma once
 
-#include <iostream>
-#include <algorithm>
-#include <vector>
-#include <queue>
-#include <assert.h>
+#include "level_generation.h"
 
-#include "map.h"
-#include "random.h"
-
-class Room
-{
-public:
-    Room(v2 in_pos, v2 in_size) : pos(in_pos), size(in_size) {};
-    v2 pos; //pivot is left-up.
-    v2 size;
-    std::vector<v2> doors;
-
-    static const v2 MIN_SIZE;
-    void clamp_size(v2 map_size)
-    {
-        size.x = std::clamp(pos.x + size.x, 0, map_size.x-1);
-        size.y = std::clamp(pos.y + size.y, 0, map_size.y-1);
-    }
-};
-
-inline const v2 Room::MIN_SIZE = v2(4, 4);
-
-class BSPDungeon
+class BSPDungeon : LevelGeneration
 {
 public:
     BSPDungeon(Map& in_map) : map(in_map) {}
     Map& map;
-private:
+protected:
     std::vector<Room> rooms;
-    std::vector<std::shared_ptr<Tile>> walkable_floors;
+    std::vector<v2> walkable_floors;
 
 public:
+    std::vector<v2> get_floors() override { return walkable_floors; };
+    std::vector<Room> get_rooms() override { return rooms; };
+
     void generate(Room in_room, const int depth)
     {
         rooms.reserve( static_cast<size_t>(std::powl(2, depth)) );
@@ -60,20 +38,20 @@ public:
         
         for (auto room : rooms)
         {
-            for (int i = 0; i < room.size.x; i++)
-            {
-                map.get_tile(room.pos + v2(i, 0)).character = 'J';
-                map.get_tile(room.pos + v2(i, room.size.y-1 )).character = 'X';
-            }
-            for (int i = 0; i < room.size.y; i++)
-            {
-                map.get_tile(room.pos + v2(0, i)).character = 'J';
-                map.get_tile(room.pos + v2(room.size.x-1, i)).character = 'X';
-            }
+            // for (int i = 0; i < room.size.x; i++)
+            // {
+            //     map.get_tile(room.pos + v2(i, 0)).character = 'J';
+            //     map.get_tile(room.pos + v2(i, room.size.y-1 )).character = 'X';
+            // }
+            // for (int i = 0; i < room.size.y; i++)
+            // {
+            //     map.get_tile(room.pos + v2(0, i)).character = 'J';
+            //     map.get_tile(room.pos + v2(room.size.x-1, i)).character = 'X';
+            // }
 
-            Random door_rand;
-            v2 door_pos = door_rand.get_room_outline_rand(room.size);
-            map.get_tile(room.pos + door_pos).character = 'D';
+            // Random door_rand;
+            // v2 door_pos = door_rand.get_room_outline_rand(room.size);
+            // map.get_tile(room.pos + door_pos).character = 'D';
         }
         
     };
