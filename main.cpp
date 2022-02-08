@@ -6,14 +6,22 @@
 #include "map.h"
 #include "astar.h"
 #include "bsp_dungeon.h"
+#include "tower.h"
+#include "open_wide_floor.h"
 
 int main(int, char**) 
 {
     Map map(v2(50,50));
     // map.draw_border();
 
-    BSPDungeon bspmap(map);
-    bspmap.generate({ {0, 0}, map.size}, 4);
+    // BSPDungeon bspmap(map);
+    // bspmap.generate({ {0, 0}, map.size}, 4);
+
+    // Tower tower(map);
+    // tower.generate({ {0, 0}, map.size});
+
+    OpenWideFloor owf(map);
+    owf.generate({ {0, 0}, map.size});
 
     // RLUtil::AStar astar(map);
     // std::vector<v2> way = astar.draw_way(v2(1, 1), v2(78, 23));

@@ -7,11 +7,14 @@ class Tower : LevelGeneration
 private:
     std::vector<v2> walkable_floors;
     std::vector<Room> rooms;
+    Map& map;
 public:
-    std::vector<v2> get_floors() const { return walkable_floors; }
-    std::vector<Room> get_rooms() const { return rooms; }
+    Tower(Map& in_map) : map(in_map) {}
+    std::vector<v2> get_floors() override { return walkable_floors; }
+    std::vector<Room> get_rooms() override { return rooms; }
 
     void generate(Room in_room)
     {
+        
     }
 };
