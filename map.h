@@ -34,8 +34,8 @@ public:
     };
     Tile& get_tile(const int x, const int y)
     { 
-        assert(size.x >= x || x < 0);
-        assert(size.y >= y || y < 0);
+        assert(size.x >= x || x > 0);
+        assert(size.y >= y || y > 0);
 
         return tiles[x + size.x*y];
     };
@@ -43,8 +43,8 @@ public:
     template <typename T>
     T& get_by_coord(std::vector<T>& map, v2 coord)
     {
-        assert(size.x >= coord.x || coord.x < 0);
-        assert(size.y >= coord.y || coord.y < 0);
+        assert(size.x >= coord.x || coord.x > 0);
+        assert(size.y >= coord.y || coord.y > 0);
 
         return map[coord.x + size.x*coord.y];
     }
@@ -80,13 +80,27 @@ public:
         return true;
     }
 
-    void draw_border()
+    std::vector<v2> get_border()
     {
-        for (Tile& tile : tiles)
+        std::vector<v2> border;
+        border.reserve(( (size.x*2) + (size.y*2) - 4));
+
+        const int x_max = size.x - 1;
+        const int y_max = size.y - 1;
+
+        for (int i = 0; i < size.x; i++)
         {
-            if (is_border(tile.pos))
-                tile.character = '#';
+            border.emplace_back(i, 0);
+            border.emplace_back(i, y_max);
         }
+            
+        for (int i = 1; i < size.y - 1; i++)
+        {
+            border.emplace_back(0, i);
+            border.emplace_back(x_max, i);
+        }
+
+        return border;
     }
 
     std::vector<Tile> tiles;

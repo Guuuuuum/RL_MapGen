@@ -3,16 +3,7 @@
 #include <queue>
 #include "map.h"
 #include "directions.h"
-
-// https://github.com/marukrap/RoguelikeTutorial2020/blob/master/Sources/Engine/AStar.hpp
-namespace RLUtil
-{
-
-inline int distance_RL(const v2& start, const v2& end)
-{
-    const v2 delta = { std::abs(end.x - start.x), std::abs(end.y - start.y) };
-    return std::max(delta.x, delta.y);
-};
+#include "util.h"
 
 class NaviOverlay
 {
@@ -106,6 +97,4 @@ public:
 
         return {};
     };
-};
-
 };

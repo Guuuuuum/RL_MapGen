@@ -36,6 +36,17 @@ public:
         
         return outline[ get_rand(static_cast<int32_t>(outline.size())) ];
     };
+
+    template <typename T>
+    std::vector<T> pick_num(std::vector<T> v, const int num)
+    {
+        const size_t size = v.size();
+        assert(num < size);
+
+        std::shuffle(v.begin(), v.end(), rand_method);
+
+        return {v.begin(), v.begin() + num};
+    };
     
 private:
 	const uint32_t seed;
