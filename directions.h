@@ -1,6 +1,6 @@
 #pragma once
 
-#include <array>
+#include <vector>
 #include "v2.h"
 
 class Directions
@@ -20,7 +20,7 @@ public:
     static const Directions s;
     static const Directions se;
 
-    static const std::array<Directions, 8> OCT_DIRECTIONS;
+    static const std::vector<Directions> OCT_DIRECTIONS;
 };
 
 inline const Directions Directions::nw =    {{-1 ,-1}, 15.0f};
@@ -32,4 +32,4 @@ inline const Directions Directions::sw =    {{-1 ,1}, 15.0f};
 inline const Directions Directions::s =     {{0  ,1}, 10.0f};
 inline const Directions Directions::se =    {{1  ,1}, 15.0f};
 
-inline const std::array<Directions, 8> Directions::OCT_DIRECTIONS = { nw, n, ne, w, e, sw, s, se };
+inline const std::vector<Directions> Directions::OCT_DIRECTIONS = { nw, n, ne, w, e, sw, s, se };

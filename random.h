@@ -48,6 +48,12 @@ public:
         return {v.begin(), v.begin() + num};
     };
     
+    template <typename T>
+    T& pick_one(std::vector<T> v)
+    {
+        return v[get_rand(static_cast<int32_t>(v.size()))];
+    };
+
 private:
 	const uint32_t seed;
 	std::mt19937 rand_method;

@@ -16,13 +16,22 @@ public:
     Room(v2 in_pos, v2 in_size) : pos(in_pos), size(in_size) {};
     v2 pos; //pivot is left-up.
     v2 size;
-    std::vector<v2> doors;
 
     static const v2 MIN_SIZE;
     void clamp_size(v2 map_size)
     {
         size.x = std::clamp(pos.x + size.x, 0, map_size.x-1);
         size.y = std::clamp(pos.y + size.y, 0, map_size.y-1);
+    }
+
+    bool in_bounds(const v2 pos) const
+    {
+        if (pos.x < 0 || pos.x >= size.x )
+            return false;
+        if (pos.y < 0 || pos.y >= size.y )
+            return false;
+
+        return true;
     }
 };
 

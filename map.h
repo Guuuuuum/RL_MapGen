@@ -70,7 +70,7 @@ public:
         return false;
     }
 
-    bool in_bounds(v2 pos) 
+    bool in_bounds(const v2 pos) const
     {
         if (pos.x < 0 || pos.x >= size.x )
             return false;

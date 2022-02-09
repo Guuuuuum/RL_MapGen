@@ -14,12 +14,6 @@ int main(int, char**)
 {
     Map map(v2(50,50));
     
-    auto border = map.get_border();
-    Random rnd;
-    auto selected = rnd.pick_num(border, 10);
-    for (v2& pos : selected)
-        RLUtil::draw_wall(map, pos, v2(24, 24) );
-    
     // map.draw_border();
 
     // BSPDungeon bspmap(map);
