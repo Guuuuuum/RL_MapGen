@@ -49,7 +49,7 @@ public:
     };
     
     template <typename T>
-    T& pick_one(std::vector<T> v)
+    T pick_one(std::vector<T> v)
     {
         return v[get_rand(static_cast<int32_t>(v.size()))];
     };

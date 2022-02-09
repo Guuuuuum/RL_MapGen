@@ -24,6 +24,11 @@ public:
         size.y = std::clamp(pos.y + size.y, 0, map_size.y-1);
     }
 
+    int get_extent() const
+    {
+        return size.x * size.y;
+    }
+
     bool in_bounds(const v2 pos) const
     {
         if (pos.x < 0 || pos.x >= size.x )

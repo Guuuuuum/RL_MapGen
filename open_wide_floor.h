@@ -78,7 +78,6 @@ private:
         std::vector<CarveOverlay> overlay(room.size.x * room.size.y);
 
         v2 walking_carve = v2(room.size.x/2, room.size.y/2);
-
         map.get_by_coord(overlay, walking_carve) = -1;
 
         for (size_t i = 0; i < energy; i++)
@@ -87,20 +86,21 @@ private:
             Directions dir = rand.pick_one(Directions::OCT_DIRECTIONS);
             
             v2 exp = walking_carve + dir.dir;
-            while (exp.x >= room.size.x || 
-                exp.y >= room.size.y ||
-                exp.x < 0 ||
-                exp.y < 0)
-                {
-                    dir = rand.pick_one(Directions::OCT_DIRECTIONS);
-                    exp = walking_carve + dir.dir;
-                }
+            while (!room.in_bounds(exp))
+            {
+                dir = rand.pick_one(Directions::OCT_DIRECTIONS);
+                exp = walking_carve + dir.dir;
+            }
             
             --map.get_by_coord(overlay, exp);
 
             if (map.get_by_coord(overlay, exp) < 0)
                 walking_carve = exp;
-        }       
+        }
+
+        for (int i = 0; i < room.size.x; i++)
+            for (int ii = 0; ii < room.size.y; ii++)
+                map.get_tile(room.pos + v2(i, ii)).character = map.get_by_coord(overlay, v2(i, ii)) < 0 ? '.' : '#';
     };
     
     // 구형, 사각형의 얇은 벽들이 있는 맵
@@ -110,7 +110,7 @@ private:
 public:
     void generate(Room in_room)
     {
-        random_walk_cave(in_room, 50);
+        random_walk_cave(in_room, 1000);
 
         // circle(in_room, in_room.pos + v2(in_room.size.x/2, in_room.size.y/2), 10);
     }
