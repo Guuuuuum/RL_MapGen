@@ -3,16 +3,12 @@
 #include "level_generation.h"
 #include "directions.h"
 
-class OpenWideFloor : LevelGeneration
+class OpenWideFloor
 {
 private:
-    std::vector<v2> walkable_floors;
-    std::vector<Room> rooms;
     Map& map;
 public:
     OpenWideFloor(Map& in_map) : map(in_map) {}
-    std::vector<v2> get_floors() override { return walkable_floors; }
-    std::vector<Room> get_rooms() override { return rooms; }
 
 private:
     inline void draw_circle_wall(const Room room, const v2 center, int x, int y)
@@ -72,35 +68,46 @@ private:
     }
 
     using CarveOverlay = int;
-    void random_walk_cave(const Room room, const size_t energy)
+    std::vector<CarveOverlay> random_walk_cave(const Room room, const size_t energy)
     {
         fill(room);
-        std::vector<CarveOverlay> overlay(room.size.x * room.size.y);
+        std::vector<CarveOverlay> overlay(room.get_extent());
+        std::vector<v2> carve_shape = {v2(0,0), v2(1, 0), v2(0, 1), v2(1, 1)};
+        std::function<bool(v2)> shape_in_bounds = [=](v2 pos)
+        {
+            bool col_test = false;
+            for (v2 shape : carve_shape)
+                col_test = col_test || room.in_bounds(shape + pos);
+            
+            return col_test;
+        };
 
-        v2 walking_carve = v2(room.size.x/2, room.size.y/2);
-        map.get_by_coord(overlay, walking_carve) = -1;
+        v2 pivot = v2(room.size.x/2, room.size.y/2);
+
+        for (v2& shape : carve_shape)
+            map.try_call_in_bound(overlay, room, pivot + shape, [&](){ map.get_by_coord(overlay, room.size, pivot + shape) = -1; } );
 
         for (size_t i = 0; i < energy; i++)
         {
             Random rand;
             Directions dir = rand.pick_one(Directions::OCT_DIRECTIONS);
             
-            v2 exp = walking_carve + dir.dir;
-            while (!room.in_bounds(exp))
+            v2 exp = pivot + dir.dir;
+
+            while (!shape_in_bounds(exp))
             {
                 dir = rand.pick_one(Directions::OCT_DIRECTIONS);
-                exp = walking_carve + dir.dir;
+                exp = pivot + dir.dir;
             }
             
-            --map.get_by_coord(overlay, exp);
+            for (v2& shape : carve_shape)
+                map.try_call_in_bound(overlay, room, exp + shape, [&](){ --map.get_by_coord(overlay, room.size, exp + shape); } );
 
-            if (map.get_by_coord(overlay, exp) < 0)
-                walking_carve = exp;
+            if (room.in_bounds(exp) && map.get_by_coord(overlay, room.size, exp) < 0)
+                pivot = exp;
         }
 
-        for (int i = 0; i < room.size.x; i++)
-            for (int ii = 0; ii < room.size.y; ii++)
-                map.get_tile(room.pos + v2(i, ii)).character = map.get_by_coord(overlay, v2(i, ii)) < 0 ? '.' : '#';
+        return overlay;
     };
     
     // 구형, 사각형의 얇은 벽들이 있는 맵
@@ -108,10 +115,14 @@ private:
     // 랜덤 1x1 벽들
     // 공통적으로는 계단을 중심으로 정규분포로 벽이 퍼져있어야 함
 public:
-    void generate(Room in_room)
+    void generate(Room in_room, const int energy)
     {
-        random_walk_cave(in_room, 1000);
+        std::vector<CarveOverlay> overlay = random_walk_cave(in_room, energy);
 
+        for (int i = 0; i < in_room.size.x; i++)
+            for (int ii = 0; ii < in_room.size.y; ii++)
+                map.get_tile(in_room.pos + v2(i, ii)).character = map.get_by_coord(overlay, in_room.size, v2(i, ii)) < 0 ? '.' : '#';
+        
         // circle(in_room, in_room.pos + v2(in_room.size.x/2, in_room.size.y/2), 10);
     }
 };

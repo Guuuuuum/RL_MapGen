@@ -43,7 +43,7 @@ public:
         std::vector<NaviOverlay> navi_overlay(map.size.x * map.size.y);
         
         possible_queue.push( start );
-        map.get_by_coord<NaviOverlay>(navi_overlay, start).cost = 0;
+        map.get_by_coord<NaviOverlay>(navi_overlay, map.size, start).cost = 0;
 
         while (!possible_queue.empty())
         {
@@ -58,14 +58,14 @@ public:
                 {
                     path.emplace_back(search_pos);
                     
-                    search_pos = map.get_by_coord<NaviOverlay>(navi_overlay, search_pos).pos_before;
+                    search_pos = map.get_by_coord<NaviOverlay>(navi_overlay, map.size, search_pos).pos_before;
                 }
                 
                 path.emplace_back(start);
                 return path;
             }
 
-            NaviOverlay& nav_node = map.get_by_coord<NaviOverlay>(navi_overlay, search_pos);
+            NaviOverlay& nav_node = map.get_by_coord<NaviOverlay>(navi_overlay, map.size, search_pos);
             nav_node.is_checked = true;
 
             map.get_tile(search_pos.x, search_pos.y).character = '*';
@@ -77,7 +77,7 @@ public:
                 if (!map.in_bounds(to_check))
                     continue;
 
-                NaviOverlay& nav_next_node = map.get_by_coord<NaviOverlay>(navi_overlay, to_check);
+                NaviOverlay& nav_next_node = map.get_by_coord<NaviOverlay>(navi_overlay, map.size, to_check);
                 // todo else conditions
                 if (map.get_tile(to_check.x, to_check.y).character == '#' ||// !nav_next_node.is_passable ||
                     nav_next_node.is_checked)

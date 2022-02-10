@@ -2,7 +2,9 @@
 
 #include <vector>
 #include <assert.h>
-#include "v2.h"
+#include <functional>
+
+#include "level_generation.h"
 
 class Tile
 {
@@ -16,6 +18,9 @@ public:
 
 class Map
 {
+public:
+    std::vector<Tile> tiles;
+    const v2 size;
 public:
     Map() = delete;
     Map(v2 in_size) : size(in_size), tiles(in_size.x * in_size.y) 
@@ -41,12 +46,24 @@ public:
     };
 
     template <typename T>
-    T& get_by_coord(std::vector<T>& map, v2 coord)
+    T& get_by_coord(std::vector<T>& map, const v2 room_size, const v2 pos)
     {
-        assert(size.x >= coord.x || coord.x > 0);
-        assert(size.y >= coord.y || coord.y > 0);
+        assert(room_size.x >= pos.x || pos.x > 0);
+        assert(room_size.y >= pos.y || pos.y > 0);
 
-        return map[coord.x + size.x*coord.y];
+        return map[pos.x + room_size.x*pos.y];
+    }
+
+    template <typename T>
+    bool try_call_in_bound(std::vector<T>& map, const Room room, const v2 pos, std::function<void()> func)
+    {
+        if (room.in_bounds(pos))
+        {
+            func();
+            return true;
+        }
+
+        return false;
     }
 
     void print()
@@ -102,8 +119,4 @@ public:
 
         return border;
     }
-
-    std::vector<Tile> tiles;
-
-    v2 size;
 };

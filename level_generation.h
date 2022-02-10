@@ -6,10 +6,6 @@
 #include <queue>
 #include <assert.h>
 
-#include "map.h"
-#include "random.h"
-#include "astar.h"
-
 class Room
 {
 public:
@@ -29,11 +25,11 @@ public:
         return size.x * size.y;
     }
 
-    bool in_bounds(const v2 pos) const
+    bool in_bounds(const v2 target) const
     {
-        if (pos.x < 0 || pos.x >= size.x )
+        if (target.x < 0 || target.x >= size.x )
             return false;
-        if (pos.y < 0 || pos.y >= size.y )
+        if (target.y < 0 || target.y >= size.y )
             return false;
 
         return true;
@@ -41,10 +37,3 @@ public:
 };
 
 inline const v2 Room::MIN_SIZE = v2(4, 4);
-
-class LevelGeneration
-{
-public:
-    virtual std::vector<Room> get_rooms() = 0;
-    virtual std::vector<v2> get_floors() = 0;
-};
