@@ -50,18 +50,10 @@ public:
         return *this;
     }
 
-    v2 straight_dir() const
+    v2 normalize() const
     {
-        if (x == y)
-            if (x == 0 && y == 0)
-                return v2(0, 0);
-            else
-                return v2(1, 1);
-
-        if (x > y)
-            return v2(1, 0);
-        else
-            return v2(0, 1);
+        int length = static_cast<int>(std::sqrtl(x*x + y*y));
+        return v2(x / length, y / length);
     }
 
     int max() const

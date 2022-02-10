@@ -55,7 +55,6 @@ public:
 
         for (size_t i = 0; i < rooms.size() - 1; i++)
         {
-
             v2 d = rooms[i+1].pos - rooms[i].pos;
             Random rand;
 
@@ -71,10 +70,11 @@ public:
                     v2(rand.get_rand(rooms[i].size.x), rooms[i].size.y-1);
             }
             
-            for (size_t ii = 0; ii < d.max(); ii++)
+            int hall_length = (rooms[i+1].pos - (rooms[i].pos + rooms[i].size-v2(1,1) )).max();
+            for (size_t ii = 0; ii < std::abs(hall_length)+1; ii++)
             {
                 map.get_tile(rooms[i].pos + door_pos).character = '.';
-                door_pos += d.straight_dir();
+                door_pos += d.normalize();
             }
         }
     };
