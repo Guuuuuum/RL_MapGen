@@ -55,26 +55,41 @@ public:
 
         for (size_t i = 0; i < rooms.size() - 1; i++)
         {
-            v2 d = rooms[i+1].pos - rooms[i].pos;
+            const Room cur_room = rooms[i];
+            const Room dest_room = rooms[i+1];
+
+            v2 d = dest_room.pos - (cur_room.pos + cur_room.size);
+            // d.x = std::abs(d.x);
+            // d.y = std::abs(d.y);
             Random rand;
 
             // exclude the edge of square to minus 1,2
             v2 door_pos = d.x > d.y ? 
-                v2(rooms[i].size.x-1, rand.get_rand(rooms[i].size.y) ) : 
-                v2(rand.get_rand(rooms[i].size.x), rooms[i].size.y-1);
+                v2(cur_room.size.x-1, rand.get_rand(1, cur_room.size.y-1) ) : 
+                v2(rand.get_rand(1, cur_room.size.x-1), cur_room.size.y-1);
 
             if (d.x == d.y)
             {
                 door_pos = rand.get_rand(2) < 1 ? 
-                    v2(rooms[i].size.x-1, rand.get_rand(rooms[i].size.y)) : 
-                    v2(rand.get_rand(rooms[i].size.x), rooms[i].size.y-1);
+                    v2(cur_room.size.x-1, rand.get_rand(1, cur_room.size.y-1)) : 
+                    v2(rand.get_rand(1, cur_room.size.x-1), cur_room.size.y-1);
             }
             
-            int hall_length = (rooms[i+1].pos - (rooms[i].pos + rooms[i].size-v2(1,1) )).max();
-            for (size_t ii = 0; ii < std::abs(hall_length)+1; ii++)
+            int hall_length_1 = std::abs((dest_room.pos - (cur_room.pos + door_pos)).max());
+            d = dest_room.pos - cur_room.pos + door_pos;
+            for (size_t ii = 0; ii < hall_length_1+1; ii++)
             {
-                map.get_tile(rooms[i].pos + door_pos).character = '.';
-                door_pos += d.normalize();
+                map.get_tile(cur_room.pos + door_pos).character = 'p';
+
+                if (ii < std::abs(hall_length_1))
+                    door_pos += d.normalize();
+            }
+
+            // while (!dest_room.in_bounds_world(cur_room.pos + door_pos))
+            if (dest_room.in_bounds_world(cur_room.pos + door_pos))
+            {
+                map.get_tile(cur_room.pos + door_pos).character = 'p';
+                continue;
             }
         }
     };
