@@ -52,8 +52,8 @@ public:
 
     v2 normalize() const
     {
-        int length = static_cast<int>(std::sqrtl(x*x + y*y));
-        return v2(x / length, y / length);
+        double length = std::sqrt(x*x + y*y);
+        return v2(static_cast<int>(std::round((double)x / length)), static_cast<int>(std::round((double)y / length)));
     }
 
     int max() const

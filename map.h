@@ -33,6 +33,11 @@ public:
         }
     }
 
+    Room as_room()
+    {
+        return Room(v2(0,0), size);
+    }
+
     Tile& get_tile(const v2 pos)
     {
         return get_tile(pos.x, pos.y);

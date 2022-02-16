@@ -10,11 +10,8 @@ private:
 public:
     OpenWideFloor(Map& in_map) : map(in_map) {}
 
-private:
     inline void draw_circle_wall(const Room room, const v2 center, int x, int y)
     {
-        const v2 clamp_size = map.size;
-
         v2 r1 (center.x + x, center.y + y);
         v2 r2 (center.x - x, center.y + y);
         v2 r3 (center.x + x, center.y - y);
@@ -33,14 +30,65 @@ private:
         
     }
     
+    v2 bresenham_circle_dir(v2 vector, int& d)
+    {
+        v2 dir;
+        int x = std::abs(vector.x);
+        int y = RLUtil::euclidean(vector);
+
+        int cake_index = RLUtil::vector_to_deg(vector) / 45;
+
+        switch (cake_index)
+        {
+        case 0: 
+            dir = v2(+x, +y);
+            break;
+        case 1:
+            dir = v2(-x, +y);
+            break;
+        case 2:
+            dir = v2(+x, -y);
+            break; 
+        case 3:
+            dir = v2(-x, -y);
+            break; 
+        case 4:
+            dir = v2(+y, +x);
+            break; 
+        case 5:
+            dir = v2(-y, +x);
+            break; 
+        case 6:
+            dir = v2(+y, -x);
+            break; 
+        case 7:
+            dir = v2(-y, -x);
+            break; 
+        default:
+            dir = v2(0, 0);
+            break;
+        }
+
+        if (d > 0)
+            d += 4 * (x - y) + 10;
+        else
+            d += 4 * x + 6;
+
+        v2 asdf = dir.normalize();
+        return dir.normalize();
+    }
+    
     // https://www.geeksforgeeks.org/bresenhams-circle-drawing-algorithm/?ref=lbp
     void circle(const Room room, const v2 center, const int r)
     {
         int x = 0; 
         int y = r;
-        int d = 3 - 2 * r;
+        int d = 3 - (2 * r);
+
+        x = y - 3;
 
         draw_circle_wall(room, center, x, y);
+
         while (y >= x)
         {
             x++;
@@ -67,6 +115,16 @@ private:
                 map.get_tile(room.pos + v2(i, ii)).character = '#';
     }
 
+    void circle_dir(const v2 center, v2 pos)
+    {
+        for (size_t i = 0; i < 10; i++)
+        {
+            int d;
+            pos += bresenham_circle_dir(pos, d);
+            map.get_tile(pos).character = '#';
+        }
+    }
+
     using CarveOverlay = int;
     std::vector<CarveOverlay> random_walk_cave(const Room room, const size_t energy)
     {
@@ -90,9 +148,13 @@ private:
         for (size_t i = 0; i < energy; i++)
         {
             Random rand;
-            Directions dir = rand.pick_one(Directions::OCT_DIRECTIONS);
-            
+
+            Directions dir = rand.pick_one(Directions::OCT_DIRECTIONS);            
             v2 exp = pivot + dir.dir;
+            if (rand.get_rand(3) < 1)
+            {
+                
+            }
 
             while (!shape_in_bounds(exp))
             {

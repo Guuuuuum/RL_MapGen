@@ -21,27 +21,6 @@ public:
         return min + std::uniform_int_distribution<>(0, max - min - 1)(rand_method);
     }
 
-    // v2 get_room_outline_rand(v2& size)
-    // {
-    //     std::vector<v2> outline(size.x*2 + size.y*2 -4);
-
-    //     for (int i = 0; i < size.x; i++)
-    //     {
-    //         outline.emplace_back(i, 0);
-    //         outline.emplace_back(i, std::clamp(size.y-1, 0, size.y));
-    //     }
-
-    //     for (int i = 1; i < size.y-1; i++)
-    //     {
-    //         outline.emplace_back(0, i);
-    //         outline.emplace_back(std::clamp(size.x-1, 0, size.x), i);
-    //     }
-        
-    //     assert(size.x*2 + size.y*2 -4 != outline.size());
-        
-    //     return outline[ get_rand(static_cast<int32_t>(outline.size())) ];
-    // };
-
     template <typename T>
     std::vector<T> pick_num(std::vector<T> v, const int num)
     {
