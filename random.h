@@ -38,11 +38,6 @@ public:
         return v[get_rand(static_cast<int32_t>(v.size()))];
     };
 
-    std::vector<v2> circle_biased_random_dir(const int r)
-    {
-
-    }
-
 private:
 	const uint32_t seed;
 	std::mt19937 rand_method;

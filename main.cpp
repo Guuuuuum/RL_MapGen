@@ -15,7 +15,7 @@ int main(int, char**)
     Map map(v2(50,50));
 
     OpenWideFloor owf(map);
-    owf.circle_dir(v2(map.size.x/2, map.size.y/2), v2 (25, 35));
+    owf.cellular_automata(map.as_room());
 
     // BSPDungeon bspmap(map);
     // bspmap.generate({ {0, 0}, map.size}, 4);    

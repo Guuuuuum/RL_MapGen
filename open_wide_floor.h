@@ -2,6 +2,7 @@
 
 #include "level_generation.h"
 #include "directions.h"
+#include <set>
 
 class OpenWideFloor
 {
@@ -29,55 +30,7 @@ public:
         }
         
     }
-    
-    v2 bresenham_circle_dir(v2 vector, int& d)
-    {
-        v2 dir;
-        int x = std::abs(vector.x);
-        int y = RLUtil::euclidean(vector);
-
-        int cake_index = RLUtil::vector_to_deg(vector) / 45;
-
-        switch (cake_index)
-        {
-        case 0: 
-            dir = v2(+x, +y);
-            break;
-        case 1:
-            dir = v2(-x, +y);
-            break;
-        case 2:
-            dir = v2(+x, -y);
-            break; 
-        case 3:
-            dir = v2(-x, -y);
-            break; 
-        case 4:
-            dir = v2(+y, +x);
-            break; 
-        case 5:
-            dir = v2(-y, +x);
-            break; 
-        case 6:
-            dir = v2(+y, -x);
-            break; 
-        case 7:
-            dir = v2(-y, -x);
-            break; 
-        default:
-            dir = v2(0, 0);
-            break;
-        }
-
-        if (d > 0)
-            d += 4 * (x - y) + 10;
-        else
-            d += 4 * x + 6;
-
-        v2 asdf = dir.normalize();
-        return dir.normalize();
-    }
-    
+      
     // https://www.geeksforgeeks.org/bresenhams-circle-drawing-algorithm/?ref=lbp
     void circle(const Room room, const v2 center, const int r)
     {
@@ -115,13 +68,55 @@ public:
                 map.get_tile(room.pos + v2(i, ii)).character = '#';
     }
 
-    void circle_dir(const v2 center, v2 pos)
+    using TileFlag = uint8_t;
+    std::vector<TileFlag> fill_random(const Room room, const int cell_num)
     {
-        for (size_t i = 0; i < 10; i++)
+        assert(room.size.x * room.size.y >= cell_num);
+
+        std::vector<TileFlag> layer(room.size.x * room.size.y);
+
+        Random rand;
+        std::set<int> hands;
+
+        for (int i = 0; i < cell_num; i++)
         {
-            int d;
-            pos += bresenham_circle_dir(pos, d);
-            map.get_tile(pos).character = '#';
+            int index = rand.get_rand(room.size.x * room.size.y);
+            while (hands.find(index) != hands.end())
+                index = rand.get_rand(room.size.x * room.size.y);
+            
+            hands.emplace(index);
+            map.get_by_coord(layer, room.size, v2(room.pos.x + index%(room.size.x), room.pos.y + index/room.size.x)) = 1u;
+        }
+
+        return layer;
+    }
+
+    void cellular_automata(const Room room)
+    {
+
+        std::vector<TileFlag> layer = fill_random(room, room.size.x*room.size.y/2);
+        for (int x = 0; x < room.size.x; x++)
+        {
+            for (int y = 0; y < room.size.y; y++)
+            {
+                const v2 pos(x, y);
+                if (map.get_by_coord(layer, room.size, pos) > 0)
+                {
+                    bool check = true;
+                    for (const Directions& dir : Directions::CROSS_DIRECTIONS)
+                    {
+                        if (room.in_bounds(pos + dir.dir))
+                            check &= map.get_by_coord(layer, room.size, pos) > 0;
+                    }
+
+                    if (check)
+                        map.get_tile(room.pos.x + x, room.pos.y + y).character = '#';
+                }
+                else
+                {
+
+                }
+            }
         }
     }
 

@@ -18,10 +18,11 @@ public:
 
 class Map
 {
-public:
+private:
     std::vector<Tile> tiles;
-    const v2 size;
 public:
+    const v2 size;
+    std::vector<Tile>& get_tiles() {return tiles;}
     Map() = delete;
     Map(v2 in_size) : size(in_size), tiles(in_size.x * in_size.y) 
     {
@@ -42,6 +43,7 @@ public:
     {
         return get_tile(pos.x, pos.y);
     };
+    
     Tile& get_tile(const int x, const int y)
     { 
         assert(size.x >= x || x > 0);

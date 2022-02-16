@@ -21,6 +21,7 @@ public:
     static const Directions se;
 
     static const std::vector<Directions> OCT_DIRECTIONS;
+    static const std::vector<Directions> CROSS_DIRECTIONS;
 };
 
 inline const Directions Directions::nw =    {{-1 ,-1}, 15.0f};
@@ -33,3 +34,4 @@ inline const Directions Directions::s =     {{0  ,1}, 10.0f};
 inline const Directions Directions::se =    {{1  ,1}, 15.0f};
 
 inline const std::vector<Directions> Directions::OCT_DIRECTIONS = { nw, n, ne, w, e, sw, s, se };
+inline const std::vector<Directions> Directions::CROSS_DIRECTIONS = { n, w, e, s };
