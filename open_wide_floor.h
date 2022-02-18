@@ -32,7 +32,7 @@ public:
     }
       
     // https://www.geeksforgeeks.org/bresenhams-circle-drawing-algorithm/?ref=lbp
-    void circle(const Room room, const v2 center, const int r)
+    void bresenhams_circle(const Room room, const v2 center, const int r)
     {
         int x = 0; 
         int y = r;
@@ -61,6 +61,11 @@ public:
         }
     }
 
+    void rounds_walking(const Room room, const v2 pos, const int walk_energy = 1)
+    {
+             
+    }
+
     void fill(const Room room)
     {
         for (int i = 0; i < room.size.x; i++)
@@ -68,7 +73,7 @@ public:
                 map.get_tile(room.pos + v2(i, ii)).character = '#';
     }
 
-    using TileFlag = uint8_t;
+    using TileFlag = char;
     std::vector<TileFlag> fill_random(const Room room, const int cell_num)
     {
         assert(room.size.x * room.size.y >= cell_num);
@@ -85,36 +90,73 @@ public:
                 index = rand.get_rand(room.size.x * room.size.y);
             
             hands.emplace(index);
-            map.get_by_coord(layer, room.size, v2(room.pos.x + index%(room.size.x), room.pos.y + index/room.size.x)) = 1u;
+            map.get_by_coord(layer, room.size, v2(index%(room.size.x), index/room.size.x)) = '#';
         }
 
         return layer;
     }
 
-    void cellular_automata(const Room room)
+    void cellular_automata(const Room room, const int gen, const int wall_d, const int tile_d)
     {
-
-        std::vector<TileFlag> layer = fill_random(room, room.size.x*room.size.y/2);
+        // std::vector<TileFlag> layer = fill_random(room, room.size.x*room.size.y/3);
+        std::vector<TileFlag> layer(map.size.x * map.size.y);
+        std::vector<TileFlag> room_seeds = fill_random(room, (double)(room.size.x*room.size.y) / 2.1);
+        
         for (int x = 0; x < room.size.x; x++)
-        {
             for (int y = 0; y < room.size.y; y++)
+                map.get_by_coord(layer, room.size, room.pos + v2(x, y)) = map.get_by_coord(room_seeds, room.size, v2(x, y));
+        
+
+        for (size_t i = 0; i < gen; i++)
+        {
+            for (int room_x = 0; room_x < room.size.x; room_x++)
             {
-                const v2 pos(x, y);
-                if (map.get_by_coord(layer, room.size, pos) > 0)
+                for (int room_y = 0; room_y < room.size.y; room_y++)
                 {
-                    bool check = true;
-                    for (const Directions& dir : Directions::CROSS_DIRECTIONS)
+                    const v2 pos(room_x, room_y);
+
+                    int check_count = 0;
+                    for (const Directions& dir : Directions::OCT_DIRECTIONS)
                     {
-                        if (room.in_bounds(pos + dir.dir))
-                            check &= map.get_by_coord(layer, room.size, pos) > 0;
+                        // needs switch if wants bounds to room
+                        // if (room.in_bounds(pos + dir.dir))
+                        if (map.in_bounds(room.pos + pos + dir.dir))
+                        {
+                            if (map.get_by_coord(layer, room.size, room.pos + pos + dir.dir) == '#')
+                                ++check_count;
+                        }
+                        else
+                        {
+                            ++check_count;
+                        }
                     }
 
-                    if (check)
-                        map.get_tile(room.pos.x + x, room.pos.y + y).character = '#';
-                }
-                else
-                {
+                    if (map.get_tile(room.pos + pos).character == '#')
+                    {
+                        if (check_count >= wall_d)
+                            map.get_by_coord(layer, room.size, room.pos + pos) = '#';
+                        else
+                            map.get_by_coord(layer, room.size, room.pos + pos) = '.';
 
+                        if (check_count <= 2)
+                            map.get_by_coord(layer, room.size, room.pos + pos) = '.';
+                    }
+                    else
+                    {
+                        if (check_count >= tile_d)
+                            map.get_by_coord(layer, room.size, room.pos + pos) = '#';
+                        else
+                            map.get_by_coord(layer, room.size, room.pos + pos) = '.';
+                    }
+
+                    for (int map_x = 0; map_x < room.size.x; map_x++)
+                    {
+                        for (int map_y = 0; map_y < room.size.y; map_y++)
+                        {
+                            const v2 map_pos = v2(map_x, map_y);
+                            map.get_tile(room.pos + map_pos).character = map.get_by_coord(layer, room.size, room.pos + map_pos);
+                        }
+                    }
                 }
             }
         }

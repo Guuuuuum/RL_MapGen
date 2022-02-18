@@ -3,7 +3,7 @@
 
 namespace RLUtil
 {
-	inline int euclidean(v2& start, v2& end)
+	inline int euclidean(const v2& start, const v2& end)
 	{
 		const v2 delta = end - start;
 		return static_cast<int>(std::sqrt(delta.x * delta.x + delta.y * delta.y));

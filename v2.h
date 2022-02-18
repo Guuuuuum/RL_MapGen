@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 class v2
 {
 public:
@@ -28,6 +30,16 @@ public:
         return v2(x * rh.x, y * rh.y);
     };
 
+	v2 operator/(const v2& rh) const
+    {
+        return v2(x / rh.x, y / rh.y);
+    };
+
+	v2 operator/(const int d) const
+    {
+        return v2(x / d, y / d);
+    };
+
 	bool operator==(const v2& rh) const
     {
         return (rh.x == x && rh.y == y);
@@ -52,8 +64,18 @@ public:
 
     v2 normalize() const
     {
-        double length = std::sqrt(x*x + y*y);
-        return v2(static_cast<int>(std::round((double)x / length)), static_cast<int>(std::round((double)y / length)));
+        if (x == y)
+        {
+            if (x == 0)
+                return v2(0, 0);
+            else
+                return v2(std::clamp(x, -1, 1), std::clamp(y, -1, 1));
+        }
+
+        if (x > y)
+            return v2(std::clamp(x, -1, 1), 0);
+        else
+            return v2(0, std::clamp(y, -1, 1));
     }
 
     int max() const
