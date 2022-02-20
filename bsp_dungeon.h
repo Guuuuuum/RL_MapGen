@@ -58,7 +58,7 @@ public:
             }
         }
 
-        for (size_t i = 0; i < rooms.size(); i += 2)
+        for (size_t i = 0; i < rooms.size()-1; i++)
         {
             Room& cur = rooms[i];
             Room& next = rooms[i+1];
@@ -71,17 +71,32 @@ public:
 
             v2 door_pos = dp_temp;
             if (door_pos.y > 0)
-            {
                 door_pos.x = rand.get_rand(1, cur.size.x-1);
-            }
             else
-            {
                 door_pos.y = rand.get_rand(1, cur.size.y-1);
-            }
 
             map.get_tile(cur.pos + door_pos).character = '+';
             
-            const v2 door_dir = (next.pos - door_pos).normalize();
+            const v2 door_dir = bsp_spaces[i+1].pos - (cur.pos + door_pos);
+            for (size_t ii = 0; ii < std::abs(door_dir.min()); ii++)
+            {
+                door_pos += door_dir.normalize();
+                map.get_tile(cur.pos + door_pos).character = '+';
+            }
+
+            const v2 delta_nextroom = next.pos - (cur.pos + door_pos);
+            v2 next_doorpos = next.pos;
+            if (delta_nextroom.y > delta_nextroom.x)
+                next_doorpos.y += rand.get_rand(1, next.size.y-1);
+            else
+                next_doorpos.x += rand.get_rand(1, next.size.x-1);
+            
+            const v2 door_dir_2 = next_doorpos - (cur.pos + door_pos);
+            for (size_t i = 0; i < std::abs(door_dir_2.max()); i++)
+            {
+                door_pos += door_dir_2.normalize();
+                map.get_tile(cur.pos + door_pos).character = '+';
+            }
         }
 
         for (size_t i = 0; i < rooms.size(); i++)
@@ -91,9 +106,9 @@ public:
 private:
     void divide_room(std::vector<Room>& spaces, Room room, int depth)
     {
-        if (room.size.x < Room::MIN_SIZE.x || room.size.y < Room::MIN_SIZE.y)
+        if (room.size.x <= Room::MIN_SIZE.x || room.size.y <= Room::MIN_SIZE.y)
         {
-            spaces.emplace_back(room);
+            // spaces.emplace_back(room);
             return;
         }
 
@@ -109,6 +124,9 @@ private:
             const int min_cutlength = room.size.x/4;
             int rand_width = min_cutlength + rand.get_rand(min_cutlength) * 2;
 
+            if (room.size.x/2 <= Room::MIN_SIZE.x)
+                rand_width = Room::MIN_SIZE.x + rand.get_rand(room.size.x - Room::MIN_SIZE.x);
+
             divide_room(spaces, Room(room.pos, v2(rand_width, room.size.y)), depth - 1);
             divide_room(spaces, Room(room.pos + v2(rand_width-1, 0), v2(room.size.x - rand_width+1, room.size.y)), depth - 1);
         }
@@ -116,6 +134,9 @@ private:
         {
             const int min_cutlength = room.size.y/4;
             int rand_height = min_cutlength + rand.get_rand(min_cutlength) * 2;
+
+            if (room.size.y/2 <= Room::MIN_SIZE.y)
+                rand_height = Room::MIN_SIZE.y + rand.get_rand(room.size.y - Room::MIN_SIZE.y);
 
             divide_room(spaces, Room(room.pos, v2(room.size.x, rand_height)), depth - 1);
             divide_room(spaces, Room(room.pos + v2(0, rand_height-1), v2(room.size.x, room.size.y - rand_height+1)), depth - 1);
