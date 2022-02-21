@@ -4,6 +4,8 @@
 #include "random.h"
 #include "astar.h"
 
+#include <algorithm>
+
 class BSPDungeon
 {
 public:
@@ -58,6 +60,7 @@ public:
             }
         }
 
+        std::vector<v2> doorway_pos;
         for (size_t i = 0; i < rooms.size()-1; i++)
         {
             Room& cur = rooms[i];
@@ -66,8 +69,8 @@ public:
             Random rand;
             const v2 dir = next.pos - cur.pos;
             const v2 dp_temp(
-                std::clamp(dir.normalize().x * cur.size.x-1, 0, cur.size.x-1),
-                std::clamp(dir.normalize().y * cur.size.y-1, 0, cur.size.y-1));
+                std::clamp(dir.flatten_max().x * cur.size.x-1, 0, cur.size.x-1),
+                std::clamp(dir.flatten_max().y * cur.size.y-1, 0, cur.size.y-1));
 
             v2 door_pos = dp_temp;
             if (door_pos.y > 0)
@@ -76,31 +79,73 @@ public:
                 door_pos.y = rand.get_rand(1, cur.size.y-1);
 
             map.get_tile(cur.pos + door_pos).character = '+';
+            doorway_pos.emplace_back(cur.pos + door_pos);
+
+            v2 next_doorpos = next.pos;
+            const v2 delta_nextroom = next.pos - (cur.pos + door_pos);
+            if (delta_nextroom.y > delta_nextroom.x)
+                next_doorpos.x += rand.get_rand(1, next.size.x-1);
+            else
+                next_doorpos.y += rand.get_rand(1, next.size.y-1);
             
-            const v2 door_dir = bsp_spaces[i+1].pos - (cur.pos + door_pos);
-            for (size_t ii = 0; ii < std::abs(door_dir.min()); ii++)
+            map.get_tile(next_doorpos).character = '+';
+            doorway_pos.emplace_back(cur.pos + door_pos);
+
+            v2 door_dir = next_doorpos - (cur.pos + door_pos);
+            int curveway_num = (door_dir.abs_max()/4) + rand.get_rand(door_dir.abs_max()/2);
+            for (size_t ii = 0; ii < door_dir.abs_max() - curveway_num; ii++)
             {
-                door_pos += door_dir.normalize();
-                map.get_tile(cur.pos + door_pos).character = '+';
+                door_pos += door_dir.flatten_max();
+                map.get_tile(cur.pos + door_pos).character = '*';
+                doorway_pos.emplace_back(cur.pos + door_pos);
             }
 
-            const v2 delta_nextroom = next.pos - (cur.pos + door_pos);
-            v2 next_doorpos = next.pos;
-            if (delta_nextroom.y > delta_nextroom.x)
-                next_doorpos.y += rand.get_rand(1, next.size.y-1);
-            else
-                next_doorpos.x += rand.get_rand(1, next.size.x-1);
-            
-            const v2 door_dir_2 = next_doorpos - (cur.pos + door_pos);
-            for (size_t i = 0; i < std::abs(door_dir_2.max()); i++)
+            for (size_t ii = 0; ii < door_dir.abs_min(); ii++)
             {
-                door_pos += door_dir_2.normalize();
-                map.get_tile(cur.pos + door_pos).character = '+';
+                door_pos += door_dir.flatten_min();
+                map.get_tile(cur.pos + door_pos).character = '*';
+                doorway_pos.emplace_back(cur.pos + door_pos);
+            }
+
+            door_dir = next_doorpos - (cur.pos + door_pos);
+            for (size_t ii = 0; ii < door_dir.abs_max(); ii++)
+            {
+                door_pos += door_dir.flatten_max();
+                map.get_tile(cur.pos + door_pos).character = '*';
+                doorway_pos.emplace_back(cur.pos + door_pos);
             }
         }
 
-        for (size_t i = 0; i < rooms.size(); i++)
-            map.get_tile(rooms[i].pos).character = 'a' + i;
+        for (const v2& way : doorway_pos)
+        {
+            for (const Directions& dir : Directions::OCT_DIRECTIONS)
+            {
+                if (std::find(doorway_pos.begin(), doorway_pos.end(), way + dir.dir) == doorway_pos.end())
+                {
+                    bool outdoor = true;
+                    for (const Room& room : rooms)
+                    {
+                        if (room.in_bounds_world(way + dir.dir))
+                        {
+                            outdoor = false;
+                            break;
+                        }
+                    }
+
+                    if (outdoor)
+                    {
+                        map.try_call_in_bound(way + dir.dir, [&]()
+                        {
+                            map.get_tile(way + dir.dir).character = '#';
+                        });
+                    }
+                }
+            }
+            map.get_tile(way).character = '.';
+        }
+
+        // for (size_t i = 0; i < rooms.size(); i++)
+        //     map.get_tile(rooms[i].pos).character = 'a' + i;
     };
 
 private:

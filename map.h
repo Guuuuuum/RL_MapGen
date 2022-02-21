@@ -73,6 +73,17 @@ public:
         return false;
     }
 
+    bool try_call_in_bound(const v2 pos, std::function<void()> func)
+    {
+        if (in_bounds(pos))
+        {
+            func();
+            return true;
+        }
+
+        return false;
+    }
+
     void print()
     {
         size_t tile_num = tiles.size();

@@ -13,6 +13,9 @@ public:
 
     int32_t get_rand(int32_t max)
     {
+        if (max <= 1)
+            return 0;
+            
         return std::uniform_int_distribution<>(0, max - 1)(rand_method);
     };
     

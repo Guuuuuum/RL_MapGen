@@ -62,23 +62,41 @@ public:
         return *this;
     }
 
-    v2 normalize() const
+    const v2 flatten_max() const
     {
         if (x == y)
         {
             if (x == 0)
                 return v2(0, 0);
             else
-                return v2(std::clamp(x, -1, 1), std::clamp(y, -1, 1));
+                return v2(std::clamp(x, -1, 1), 0);
+                // return v2(std::clamp(x, -1, 1), std::clamp(y, -1, 1));
         }
 
-        if (x > y)
+        if (std::abs(x) > std::abs(y))
             return v2(std::clamp(x, -1, 1), 0);
         else
             return v2(0, std::clamp(y, -1, 1));
     }
 
-    int max() const
+    const v2 flatten_min() const
+    {
+        if (x == y)
+        {
+            if (x == 0)
+                return v2(0, 0);
+            else
+                return v2(0, std::clamp(y, -1, 1));
+                // return v2(std::clamp(x, -1, 1), std::clamp(y, -1, 1));
+        }
+
+        if (std::abs(x) < std::abs(y))
+            return v2(std::clamp(x, -1, 1), 0);
+        else
+            return v2(0, std::clamp(y, -1, 1));
+    }
+
+    const int max() const
     {
         if (x > y)
             return x;
@@ -86,11 +104,27 @@ public:
             return y;
     }
 
-    int min() const
+    const int min() const
     {
         if (x < y)
             return x;
         else
             return y;
+    }
+
+    const int abs_min() const
+    {
+        if (std::abs(x) < std::abs(y))
+            return std::abs(x);
+        else
+            return std::abs(y);
+    }
+
+    const int abs_max() const
+    {
+        if (std::abs(x) < std::abs(y))
+            return std::abs(y);
+        else
+            return std::abs(x);
     }
 };
