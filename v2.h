@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <assert.h>
 
 class v2
 {
@@ -55,6 +56,16 @@ public:
         return std::sqrt(x*x + y*y) < std::sqrt(rh.x*rh.x + rh.y*rh.y);
     };
 
+    int operator[](const int index) const
+    {
+        assert(index <= 1 && index >= 0);
+
+        if (index == 0)
+            return x;
+        else
+            return y;
+    };
+
     v2& operator+=(const v2& rh)
     {
         x += rh.x;
@@ -96,35 +107,27 @@ public:
             return v2(0, std::clamp(y, -1, 1));
     }
 
-    const int max() const
+    const v2 flatten_index(int index) const
+    {
+        if (index == 0)
+            return v2(std::clamp(x, -1, 1), 0);
+        else
+            return v2(0, std::clamp(y, -1, 1));
+    }
+
+    const int max_index() const
     {
         if (x > y)
-            return x;
+            return 0;
         else
-            return y;
+            return 1;
     }
 
-    const int min() const
+    const int min_index() const
     {
         if (x < y)
-            return x;
+            return 0;
         else
-            return y;
-    }
-
-    const int abs_min() const
-    {
-        if (std::abs(x) < std::abs(y))
-            return std::abs(x);
-        else
-            return std::abs(y);
-    }
-
-    const int abs_max() const
-    {
-        if (std::abs(x) < std::abs(y))
-            return std::abs(y);
-        else
-            return std::abs(x);
+            return 1;
     }
 };

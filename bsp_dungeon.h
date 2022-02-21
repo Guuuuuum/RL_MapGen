@@ -79,7 +79,7 @@ public:
                 door_pos.y = rand.get_rand(1, cur.size.y-1);
 
             map.get_tile(cur.pos + door_pos).character = '+';
-            doorway_pos.emplace_back(cur.pos + door_pos);
+            // doorway_pos.emplace_back(cur.pos + door_pos);
 
             v2 next_doorpos = next.pos;
             const v2 delta_nextroom = next.pos - (cur.pos + door_pos);
@@ -88,32 +88,39 @@ public:
             else
                 next_doorpos.y += rand.get_rand(1, next.size.y-1);
             
-            map.get_tile(next_doorpos).character = '+';
-            doorway_pos.emplace_back(cur.pos + door_pos);
+            // doorway_pos.emplace_back(cur.pos + door_pos);
 
+
+            // making pathway as xyx or yxy order
             v2 door_dir = next_doorpos - (cur.pos + door_pos);
-            int curveway_num = (door_dir.abs_max()/4) + rand.get_rand(door_dir.abs_max()/2);
-            for (size_t ii = 0; ii < door_dir.abs_max() - curveway_num; ii++)
+            int xyx_yxy = door_dir.max_index();
+
+            int curveway_num = (std::abs(door_dir[xyx_yxy])/4) + rand.get_rand(std::abs(door_dir[xyx_yxy])/2);
+            for (size_t ii = 0; ii < std::abs(door_dir[xyx_yxy]) - curveway_num; ii++)
             {
-                door_pos += door_dir.flatten_max();
+                door_pos += door_dir.flatten_index(xyx_yxy);
                 map.get_tile(cur.pos + door_pos).character = '*';
                 doorway_pos.emplace_back(cur.pos + door_pos);
             }
 
-            for (size_t ii = 0; ii < door_dir.abs_min(); ii++)
+            xyx_yxy = !xyx_yxy;
+            for (size_t ii = 0; ii < std::abs(door_dir[xyx_yxy]); ii++)
             {
-                door_pos += door_dir.flatten_min();
+                door_pos += door_dir.flatten_index(xyx_yxy);
                 map.get_tile(cur.pos + door_pos).character = '*';
                 doorway_pos.emplace_back(cur.pos + door_pos);
             }
 
+            xyx_yxy = !xyx_yxy;
             door_dir = next_doorpos - (cur.pos + door_pos);
-            for (size_t ii = 0; ii < door_dir.abs_max(); ii++)
+            for (size_t ii = 0; ii < std::abs(door_dir[xyx_yxy]); ii++)
             {
-                door_pos += door_dir.flatten_max();
+                door_pos += door_dir.flatten_index(xyx_yxy);
                 map.get_tile(cur.pos + door_pos).character = '*';
                 doorway_pos.emplace_back(cur.pos + door_pos);
             }
+
+            map.get_tile(next_doorpos).character = '+';
         }
 
         for (const v2& way : doorway_pos)
