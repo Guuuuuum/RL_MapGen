@@ -167,7 +167,7 @@ public:
             }
             
 
-            for (int i = ways.size() - 1; i >= 0; i--)
+            for (int i = static_cast<int>(ways.size()) - 1; i >= 0; i--)
             {
                 const v2& way = ways[i];
                 bool vertical_door = map.is_not_passable(way + v2::up) && map.is_not_passable(way + v2::down);

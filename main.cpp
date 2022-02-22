@@ -20,12 +20,12 @@ int main(int, char**)
 {
     Map map(v2(50,50));
 
-    // OpenWideFloor owf(map);
+    OpenWideFloor owf(map);
     // owf.rounds_walking(map.as_room(), v2(25, 35));
-    // owf.cellular_automata(map.as_room(), 2, 4, 5);
+    owf.cellular_automata_sloop(map.as_room(), {2, 0.45f, 3, 4, 2, 2} );
 
-    BSPDungeon bspmap(map);
-    bspmap.generate({ {0, 0}, map.size}, 4);    
+    // BSPDungeon bspmap(map);
+    // bspmap.generate({ {0, 0}, map.size}, 4);    
 
     // for (Room& room : bspmap.rooms)
     // {

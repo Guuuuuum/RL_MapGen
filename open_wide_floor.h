@@ -4,6 +4,26 @@
 #include "directions.h"
 #include <set>
 
+struct CA_params
+{
+public:
+    CA_params(int in_gen, float percent, int in_wall_d, int in_tile_d, int in_tile_counter_d, int in_wall_counter_d) : 
+        gen(in_gen),
+        fill_percentage(percent),
+        wall_d(in_wall_d),
+        tile_d(in_tile_d),
+        tile_counter_d(in_tile_counter_d),
+        wall_counter_d(in_wall_counter_d) {};
+    
+    const int gen;
+    const float fill_percentage;
+    const int wall_d;
+    const int tile_d;
+
+    const int wall_counter_d;
+    const int tile_counter_d;
+};
+
 class OpenWideFloor
 {
 private:
@@ -67,15 +87,14 @@ public:
     }
 
     using TileFlag = char;
-    std::vector<TileFlag> fill_random(const Room room, const int cell_num)
+    std::vector<TileFlag> fill_random(const Room room, const float fill_percentage)
     {
-        assert(room.size.x * room.size.y >= cell_num);
-
         std::vector<TileFlag> layer(room.size.x * room.size.y);
 
         Random rand;
         std::set<int> hands;
 
+        const int cell_num = static_cast<int>(room.size.x * room.size.y * fill_percentage);
         for (int i = 0; i < cell_num; i++)
         {
             int index = rand.get_rand(room.size.x * room.size.y);
@@ -89,18 +108,75 @@ public:
         return layer;
     }
 
-    void cellular_automata(const Room room, const int gen, const int wall_d, const int tile_d)
+    void cellular_automata_sloop(const Room room, const CA_params& params)
     {
-        // std::vector<TileFlag> layer = fill_random(room, room.size.x*room.size.y/3);
+        std::vector<TileFlag> room_seeds = fill_random(room, params.fill_percentage);
+        
+        for (int x = 0; x < room.size.x; x++)
+            for (int y = 0; y < room.size.y; y++)
+                map.get_tile(room.pos + v2(x, y)).character = map.get_by_coord(room_seeds, room.size, v2(x, y));
+        
+        const auto loop_overmap = [&](const auto methods)
+        {
+            for (int x = 0; x < room.size.x; x++)
+            {
+                for (int y = 0; y < room.size.y; y++)
+                {
+                    const v2 pos(x, y);
+                    int wall_count = 0;
+                    for (const Directions& dir : Directions::OCT_DIRECTIONS)
+                    {
+                        if (map.in_bounds(room.pos + pos + dir.dir))
+                        {
+                            if (map.get_tile(room.pos + pos + dir.dir).character == '#')
+                                ++wall_count;
+                        }
+                        else
+                        {
+                            ++wall_count;
+                        }
+                    }
+
+                    methods(pos, wall_count);
+                }
+            }
+        };
+
+        for (size_t i = 0; i < params.gen; i++)
+        {
+            loop_overmap([&](const v2& pos, const int wall_count)
+            {
+                if (wall_count <= params.wall_d)
+                    map.get_tile(room.pos + pos).character = '#';
+                else
+                    map.get_tile(room.pos + pos).character = '.';
+            });
+
+            // loop_overmap([&](const v2& pos, const int wall_count)
+            // {
+            //     if (map.get_tile(room.pos + pos).character == '#' && 8-wall_count >= params.tile_d)
+            //         map.get_tile(room.pos + pos).character = '.';
+            // });
+
+            // loop_overmap([&](const v2& pos, const int wall_count)
+            // {
+            //     if (map.get_tile(room.pos + pos).character != '#' && wall_count >= params.wall_d)
+            //         map.get_tile(room.pos + pos).character = '#';
+            // });
+        }
+    }
+
+    void cellular_automata_oneloop(const Room room, const CA_params& params)
+    {
         std::vector<TileFlag> layer(map.size.x * map.size.y);
-        std::vector<TileFlag> room_seeds = fill_random(room, (double)(room.size.x*room.size.y) / 2.1);
+        std::vector<TileFlag> room_seeds = fill_random(room, 0.45f);
         
         for (int x = 0; x < room.size.x; x++)
             for (int y = 0; y < room.size.y; y++)
                 map.get_by_coord(layer, room.size, room.pos + v2(x, y)) = map.get_by_coord(room_seeds, room.size, v2(x, y));
         
 
-        for (size_t i = 0; i < gen; i++)
+        for (size_t i = 0; i < params.gen; i++)
         {
             for (int room_x = 0; room_x < room.size.x; room_x++)
             {
@@ -108,7 +184,7 @@ public:
                 {
                     const v2 pos(room_x, room_y);
 
-                    int check_count = 0;
+                    int wall_count = 0;
                     for (const Directions& dir : Directions::OCT_DIRECTIONS)
                     {
                         // needs switch if wants bounds to room
@@ -116,30 +192,33 @@ public:
                         if (map.in_bounds(room.pos + pos + dir.dir))
                         {
                             if (map.get_by_coord(layer, room.size, room.pos + pos + dir.dir) == '#')
-                                ++check_count;
+                                ++wall_count;
                         }
                         else
                         {
-                            ++check_count;
+                            ++wall_count;
                         }
                     }
 
                     if (map.get_tile(room.pos + pos).character == '#')
                     {
-                        if (check_count >= wall_d)
+                        if (wall_count >= params.wall_d)
                             map.get_by_coord(layer, room.size, room.pos + pos) = '#';
                         else
                             map.get_by_coord(layer, room.size, room.pos + pos) = '.';
 
-                        if (check_count <= 2)
+                        if (wall_count <= params.tile_counter_d)
                             map.get_by_coord(layer, room.size, room.pos + pos) = '.';
                     }
                     else
                     {
-                        if (check_count >= tile_d)
+                        if (wall_count >= params.tile_d)
                             map.get_by_coord(layer, room.size, room.pos + pos) = '#';
                         else
                             map.get_by_coord(layer, room.size, room.pos + pos) = '.';
+
+                        if (8 - wall_count <= params.wall_counter_d)
+                            map.get_by_coord(layer, room.size, room.pos + pos) = '#';
                     }
 
                     for (int map_x = 0; map_x < room.size.x; map_x++)
