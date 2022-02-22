@@ -142,27 +142,85 @@ public:
             }
         };
 
+        Random rand;
+        for (size_t i = 0; i < 10000; i++)
+        {
+            const v2 pos(rand.get_rand(room.size.x), rand.get_rand(room.size.y));
+            int wall_count = 0;
+            for (const Directions& dir : Directions::OCT_DIRECTIONS)
+            {
+                if (map.in_bounds(room.pos + pos + dir.dir))
+                {
+                    if (map.get_tile(room.pos + pos + dir.dir).character == '#')
+                        ++wall_count;
+                }
+                else
+                {
+                    ++wall_count;
+                }
+            }
+
+            if (wall_count > 4)
+                map.get_tile(pos).character = '#';
+            else
+                map.get_tile(pos).character = '.';
+        }
+
         for (size_t i = 0; i < params.gen; i++)
         {
             loop_overmap([&](const v2& pos, const int wall_count)
             {
-                if (wall_count <= params.wall_d)
-                    map.get_tile(room.pos + pos).character = '#';
-                else
+                if (map.get_tile(room.pos + pos).character == '#' && 8-wall_count >= params.tile_d)
+                {
                     map.get_tile(room.pos + pos).character = '.';
+                }
             });
 
             // loop_overmap([&](const v2& pos, const int wall_count)
             // {
-            //     if (map.get_tile(room.pos + pos).character == '#' && 8-wall_count >= params.tile_d)
-            //         map.get_tile(room.pos + pos).character = '.';
-            // });
-
-            // loop_overmap([&](const v2& pos, const int wall_count)
-            // {
             //     if (map.get_tile(room.pos + pos).character != '#' && wall_count >= params.wall_d)
+            //     {
             //         map.get_tile(room.pos + pos).character = '#';
+            //     }
             // });
+        }
+    }
+
+    void maze_fill(const Room room, const CA_params& params)
+    {
+        std::vector<TileFlag> room_seeds = fill_random(room, params.fill_percentage);
+        
+        for (int x = 0; x < room.size.x; x++)
+            for (int y = 0; y < room.size.y; y++)
+                map.get_tile(room.pos + v2(x, y)).character = map.get_by_coord(room_seeds, room.size, v2(x, y));
+
+        for (size_t i = 0; i < params.gen; i++)
+        {
+            for (int x = 0; x < room.size.x; x++)
+            {
+                for (int y = 0; y < room.size.y; y++)
+                {
+                    const v2 pos(x, y);
+                    int wall_count = 0;
+                    for (const Directions& dir : Directions::OCT_DIRECTIONS)
+                    {
+                        if (map.in_bounds(room.pos + pos + dir.dir))
+                        {
+                            if (map.get_tile(room.pos + pos + dir.dir).character == '#')
+                                ++wall_count;
+                        }
+                        else
+                        {
+                            ++wall_count;
+                        }
+                    }
+
+                    if (wall_count <= params.wall_d)
+                        map.get_tile(room.pos + pos).character = '#';
+                    else
+                        map.get_tile(room.pos + pos).character = '.';
+                }
+            }
         }
     }
 
