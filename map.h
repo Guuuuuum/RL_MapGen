@@ -137,4 +137,9 @@ public:
 
         return border;
     }
+
+    bool is_not_passable(const v2& pos)
+    {
+        return (!in_bounds(pos)) || (in_bounds(pos) && get_tile(pos).character == '#');
+    }
 };

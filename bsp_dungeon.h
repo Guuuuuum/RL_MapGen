@@ -17,13 +17,12 @@ private:
 public:
     void generate(Room in_room, const int depth)
     {
-        // rooms.reserve( static_cast<size_t>(std::powl(2, depth)) );
+        rooms.reserve( static_cast<size_t>(std::powl(2, depth)) );
+        RLUtil::fill(map, in_room);
 
         std::vector<Room> bsp_spaces;
         divide_room(bsp_spaces, in_room, depth);
 
-        // draw random size rooms inside bsp spaces 
-        
         for (Room& space : bsp_spaces)
         {
             if (space.size.x <= Room::MIN_SIZE.x || space.size.y <= Room::MIN_SIZE.y)
@@ -48,23 +47,24 @@ public:
         for (Room& room : rooms)
         {
             for (int i = 0; i < room.size.x; i++)
-            {
-                map.get_tile(room.pos + v2(i, 0)).character = '#';
-                map.get_tile(room.pos + v2(i, room.size.y-1 )).character = '#';
-            }
-            
-            for (int i = 0; i < room.size.y; i++)
-            {
-                map.get_tile(room.pos + v2(0, i)).character = '#';
-                map.get_tile(room.pos + v2(room.size.x-1, i)).character = '#';
+            {                
+                for (int ii = 0; ii < room.size.y; ii++)
+                {
+                    if (room.on_bounds(v2(i, ii)))
+                        map.get_tile(room.pos + v2(i, ii)).character = '#';
+                    else
+                        map.get_tile(room.pos + v2(i, ii)).character = '.';
+                }
             }
         }
 
-        std::vector<v2> doorway_pos;
+        std::vector<std::vector<v2>> doorway_pos;
         for (size_t i = 0; i < rooms.size()-1; i++)
         {
             Room& cur = rooms[i];
             Room& next = rooms[i+1];
+
+            std::vector<v2> doorways;
 
             Random rand;
             const v2 dir = next.pos - cur.pos;
@@ -78,77 +78,112 @@ public:
             else
                 door_pos.y = rand.get_rand(1, cur.size.y-1);
 
-            map.get_tile(cur.pos + door_pos).character = '+';
-            // doorway_pos.emplace_back(cur.pos + door_pos);
-
             v2 next_doorpos = next.pos;
             const v2 delta_nextroom = next.pos - (cur.pos + door_pos);
             if (delta_nextroom.y > delta_nextroom.x)
                 next_doorpos.x += rand.get_rand(1, next.size.x-1);
             else
                 next_doorpos.y += rand.get_rand(1, next.size.y-1);
-            
-            // doorway_pos.emplace_back(cur.pos + door_pos);
-
 
             // making pathway as xyx or yxy order
             v2 door_dir = next_doorpos - (cur.pos + door_pos);
             int xyx_yxy = door_dir.max_index();
 
+            doorways.emplace_back(cur.pos + door_pos);
+
+            const auto doorway = [&]()
+            {
+                door_pos += door_dir.flatten_index(xyx_yxy);
+                map.get_tile(cur.pos + door_pos).character = '.';
+                doorways.emplace_back(cur.pos + door_pos);
+            };
+
             int curveway_num = (std::abs(door_dir[xyx_yxy])/4) + rand.get_rand(std::abs(door_dir[xyx_yxy])/2);
             for (size_t ii = 0; ii < std::abs(door_dir[xyx_yxy]) - curveway_num; ii++)
             {
-                door_pos += door_dir.flatten_index(xyx_yxy);
-                map.get_tile(cur.pos + door_pos).character = '*';
-                doorway_pos.emplace_back(cur.pos + door_pos);
+                doorway();
             }
 
             xyx_yxy = !xyx_yxy;
             for (size_t ii = 0; ii < std::abs(door_dir[xyx_yxy]); ii++)
             {
-                door_pos += door_dir.flatten_index(xyx_yxy);
-                map.get_tile(cur.pos + door_pos).character = '*';
-                doorway_pos.emplace_back(cur.pos + door_pos);
+                doorway();
             }
 
             xyx_yxy = !xyx_yxy;
             door_dir = next_doorpos - (cur.pos + door_pos);
             for (size_t ii = 0; ii < std::abs(door_dir[xyx_yxy]); ii++)
             {
-                door_pos += door_dir.flatten_index(xyx_yxy);
-                map.get_tile(cur.pos + door_pos).character = '*';
-                doorway_pos.emplace_back(cur.pos + door_pos);
+                doorway();
             }
 
-            map.get_tile(next_doorpos).character = '+';
+            doorways.emplace_back(next_doorpos);
+            doorway_pos.emplace_back(doorways);
         }
 
-        for (const v2& way : doorway_pos)
+        for (const std::vector<v2>& ways : doorway_pos)
         {
-            for (const Directions& dir : Directions::OCT_DIRECTIONS)
-            {
-                if (std::find(doorway_pos.begin(), doorway_pos.end(), way + dir.dir) == doorway_pos.end())
+            bool door_placed_start = false;
+            bool door_placed_end = false;
+
+            for (const v2& way : ways)            
+            {                
+                for (const Directions& dir : Directions::OCT_DIRECTIONS)
                 {
-                    bool outdoor = true;
-                    for (const Room& room : rooms)
+                    if (std::find(ways.begin(), ways.end(), way + dir.dir) == ways.end())
                     {
-                        if (room.in_bounds_world(way + dir.dir))
+                        bool outdoor = true;
+                        for (const Room& room : rooms)
                         {
-                            outdoor = false;
-                            break;
+                            if (room.in_bounds_world(way + dir.dir))
+                            {
+                                outdoor = false;
+                                break;
+                            }
+                        }
+
+                        if (outdoor)
+                        {
+                            map.try_call_in_bound(way + dir.dir, [&]()
+                            {
+                                map.get_tile(way + dir.dir).character = '#';
+                            });
                         }
                     }
+                }
 
-                    if (outdoor)
-                    {
-                        map.try_call_in_bound(way + dir.dir, [&]()
-                        {
-                            map.get_tile(way + dir.dir).character = '#';
-                        });
-                    }
+                bool vertical_door = map.is_not_passable(way + v2::up) && map.is_not_passable(way + v2::down);
+                bool horizonal_door = map.is_not_passable(way + v2::right) && map.is_not_passable(way + v2::left);
+
+                if (!door_placed_start && (horizonal_door || vertical_door))
+                {
+                    door_placed_start = true;
+                    map.get_tile(way).character = '+';
+                }
+                else
+                {
+                    map.get_tile(way).character = '.';
                 }
             }
-            map.get_tile(way).character = '.';
+            
+
+            for (int i = ways.size() - 1; i >= 0; i--)
+            {
+                const v2& way = ways[i];
+                bool vertical_door = map.is_not_passable(way + v2::up) && map.is_not_passable(way + v2::down);
+                bool horizonal_door = map.is_not_passable(way + v2::right) && map.is_not_passable(way + v2::left);
+
+                if (!door_placed_end && (horizonal_door || vertical_door))
+                {
+                    door_placed_end = true;
+                    map.get_tile(way).character = '+';
+                    break;
+                }
+                else
+                {
+                    map.get_tile(way).character = '.';
+                } 
+            }           
         }
 
         // for (size_t i = 0; i < rooms.size(); i++)

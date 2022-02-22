@@ -44,6 +44,26 @@ public:
 
         return true;
     }
+
+    bool on_bounds(const v2 target) const
+    {
+        if (target.x == 0 || target.x == size.x-1 )
+            return true;
+        if (target.y == 0 || target.y == size.y-1 )
+            return true;
+
+        return false;
+    }
+
+    bool on_bounds_world(const v2 target) const
+    {
+        if (target.x == pos.x || target.x == (pos.x + size.x-1) )
+            return true;
+        if (target.y == pos.y || target.y == (pos.y + size.y-1) )
+            return true;
+
+        return false;
+    }
 };
 
 inline const v2 Room::MIN_SIZE = v2(4, 4);

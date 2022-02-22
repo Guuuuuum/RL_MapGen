@@ -3,6 +3,13 @@
 
 namespace RLUtil
 {
+    inline void fill(Map& map, const Room& room)
+    {
+        for (int i = 0; i < room.size.x; i++)
+            for (int ii = 0; ii < room.size.y; ii++)
+                map.get_tile(room.pos + v2(i, ii)).character = '#';
+    }
+
 	inline int euclidean(const v2& start, const v2& end)
 	{
 		const v2 delta = end - start;

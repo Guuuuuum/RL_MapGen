@@ -66,13 +66,6 @@ public:
              
     }
 
-    void fill(const Room room)
-    {
-        for (int i = 0; i < room.size.x; i++)
-            for (int ii = 0; ii < room.size.y; ii++)
-                map.get_tile(room.pos + v2(i, ii)).character = '#';
-    }
-
     using TileFlag = char;
     std::vector<TileFlag> fill_random(const Room room, const int cell_num)
     {
@@ -165,7 +158,7 @@ public:
     using CarveOverlay = int;
     std::vector<CarveOverlay> random_walk_cave(const Room room, const size_t energy)
     {
-        fill(room);
+        RLUtil::fill(map, room);
         std::vector<CarveOverlay> overlay(room.get_extent());
         std::vector<v2> carve_shape = {v2(0,0), v2(1, 0), v2(0, 1), v2(1, 1)};
         std::function<bool(v2)> shape_in_bounds = [=](v2 pos)

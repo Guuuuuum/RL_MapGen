@@ -130,4 +130,14 @@ public:
         else
             return 1;
     }
+
+    static const v2 up;
+    static const v2 down;
+    static const v2 right;
+    static const v2 left;
 };
+
+inline const v2 v2::up       =v2(0, 1);
+inline const v2 v2::down     =v2(0, -1);
+inline const v2 v2::right    =v2(1, 0);
+inline const v2 v2::left     =v2(-1, 0);
