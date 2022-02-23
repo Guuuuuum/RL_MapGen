@@ -138,6 +138,35 @@ public:
         return border;
     }
 
+    std::vector<v2> get_neibours(const v2& pos, bool cross = false) const
+    {
+        std::vector<v2> dirs;
+        dirs.reserve(8);
+        
+        if (in_bounds(pos + v2::up)) 
+            dirs.emplace_back(v2::up);
+        if (in_bounds(pos + v2::right)) 
+            dirs.emplace_back(v2::right);
+        if (in_bounds(pos + v2::down)) 
+            dirs.emplace_back(v2::down);
+        if (in_bounds(pos + v2::left)) 
+            dirs.emplace_back(v2::left);
+
+        if (!cross)
+        {
+            if (in_bounds(pos + v2(1,1))) 
+                dirs.emplace_back(v2(1,1));
+            if (in_bounds(pos + v2(-1,-1))) 
+                dirs.emplace_back(v2(-1,-1));
+            if (in_bounds(pos + v2(1,-1))) 
+                dirs.emplace_back(v2(1,-1));
+            if (in_bounds(pos + v2(-1,1))) 
+                dirs.emplace_back(v2(-1,1));
+        }
+
+        return dirs;
+    }
+
     bool is_not_passable(const v2& pos)
     {
         return (!in_bounds(pos)) || (in_bounds(pos) && get_tile(pos).character == '#');

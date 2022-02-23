@@ -22,7 +22,7 @@ int main(int, char**)
 
     OpenWideFloor owf(map);
     // owf.rounds_walking(map.as_room(), v2(25, 35));
-    owf.cellular_automata_sloop(map.as_room(), {2, 0.45f, 3, 4, 2, 2} );
+    owf.cellular_automata_sloop(map.as_room(), {2, 0.45f, 3, 4, 3, 3} );
 
     // BSPDungeon bspmap(map);
     // bspmap.generate({ {0, 0}, map.size}, 4);    
