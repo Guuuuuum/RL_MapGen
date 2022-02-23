@@ -37,7 +37,7 @@ public:
 
     Map& map;
 
-    std::vector<v2> draw_way(v2 start, v2 end, bool cross = false)
+    std::vector<v2> draw_way(v2 start, v2 end, const char avoid = '#', bool cross = false)
     {
         std::priority_queue<TileNode, std::vector<TileNode>> possible_queue;
         std::vector<NaviOverlay> navi_overlay(map.size.x * map.size.y);
@@ -81,7 +81,7 @@ public:
 
                 NaviOverlay& nav_next_node = map.get_by_coord<NaviOverlay>(navi_overlay, map.size, to_check);
                 // todo else conditions
-                if (map.get_tile(to_check.x, to_check.y).character == '#' ||// !nav_next_node.is_passable ||
+                if (map.get_tile(to_check.x, to_check.y).character == avoid ||// !nav_next_node.is_passable ||
                     nav_next_node.is_checked)
                 {
                     continue;

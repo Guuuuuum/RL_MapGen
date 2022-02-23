@@ -138,7 +138,20 @@ public:
         return border;
     }
 
-    std::vector<v2> get_neibours(const v2& pos, bool cross = false) const
+    std::vector<v2> get_neibours_wall(const v2& pos, bool cross = false)
+    {
+        std::vector<v2> neibours_dir = get_neibours(pos, false, false);
+        
+        const auto it_walls = std::remove_if(neibours_dir.begin(), neibours_dir.end(), [&](const v2& dir)
+        {
+            return get_tile(pos + dir).character != '#';
+        });
+        
+        neibours_dir.erase(it_walls, neibours_dir.end());
+        return neibours_dir;
+    }
+
+    std::vector<v2> get_neibours(const v2& pos, bool include_own = false, bool cross = false) const
     {
         std::vector<v2> dirs;
         dirs.reserve(8);
@@ -163,6 +176,9 @@ public:
             if (in_bounds(pos + v2(-1,1))) 
                 dirs.emplace_back(v2(-1,1));
         }
+
+        if (include_own && in_bounds(pos))
+            dirs.emplace_back(v2(0, 0));
 
         return dirs;
     }

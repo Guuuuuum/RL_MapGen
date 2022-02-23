@@ -179,20 +179,34 @@ public:
             
         }
 
-        std::set<std::vector<v2>> holes = determine_rooms(room);
+        std::vector<std::vector<v2>> holes = determine_rooms(room);
 
-        for (const auto hole : holes)
+        std::vector<std::vector<v2>> cave_paths;
+        for (const std::vector<v2>& hole : holes)
         {
-            for (const v2& pos : hole)
+            std::vector<v2> path;
+
+            for (size_t i = 6; i > 0; i--)
             {
-                map.get_tile(pos).character = '!';
+                for (const v2& pos : hole)
+                {
+                    if (map.get_neibours_wall(pos).size() > i)
+                    {
+                        path.emplace_back(pos);
+                        map.get_tile(pos).character = '+';
+                    }
+                }
+                if (path.size() > 1)
+                    break;
             }
+
+            cave_paths.emplace_back(path);
         }
     }
 
-    std::set<std::vector<v2>> determine_rooms(const Room& room)
+    std::vector<std::vector<v2>> determine_rooms(const Room& room)
     {
-        std::set<std::vector<v2>> holes;
+        std::vector<std::vector<v2>> holes;
 
         const auto contains_tile = [&](const v2& pos)
         {
@@ -221,17 +235,32 @@ public:
                     std::vector<v2> tiles;
 
                     flood_fill(tiles, room.pos + pos);
-                    holes.emplace(tiles);
+                    holes.emplace_back(tiles);
                 }
             }
         }
+
+        const auto small_islands = std::remove_if(holes.begin(), holes.end(), [&](const std::vector<v2>& points)
+        {
+            if (points.size() <= 8)
+            {
+                for (const v2& pos : points)
+                {
+                    map.get_tile(pos).character = '#';
+                }
+                return true;
+            }
+            return false;
+        });
+        
+        holes.erase(small_islands, holes.end());
 
         return holes;
     }
 
     void flood_fill(std::vector<v2>& tiles, const v2& pos)
     {
-        for (const v2 dir : map.get_neibours(pos))
+        for (const v2 dir : map.get_neibours(pos, true, true))
         {
             if (map.get_tile(pos + dir).character != '#')
             {
