@@ -66,6 +66,13 @@ public:
             return y;
     };
 
+	v2& operator/=(const int d)
+    {
+        x /= d;
+        y /= d;
+        return *this;
+    };
+
     v2& operator+=(const v2& rh)
     {
         x += rh.x;

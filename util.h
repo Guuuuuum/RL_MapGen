@@ -1,5 +1,7 @@
 #pragma once
 #include "map.h"
+#include <vector>
+#include <algorithm>
 
 namespace RLUtil
 {
@@ -81,8 +83,79 @@ namespace RLUtil
 		}
 	};
 
-	void voronoi(const std::vector<v2>& points)
+	void voronoi(Map& map, std::vector<v2>& points)
 	{
+		std::vector<std::pair<v2, int>> regions;
+
+		for (const auto& point : points)
+			regions.emplace_back(point, 1);
+
+		for (int y = 0; y < map.size.y; ++y)
+		{
+			for (int x = 0; x < map.size.x; ++x)
+			{
+				const v2 pos(x, y);
+				int nearest = -1;
+				int nearestDistance = std::numeric_limits<int>::max();
+
+				for (int i = 0; i < points.size(); ++i)
+				{
+					const int distance = RLUtil::euclidean(points[i], pos);
+
+					if (distance < nearestDistance)
+					{
+						nearest = i;
+						nearestDistance = distance;
+					}
+				}
+
+				regions[nearest].first += pos;
+				regions[nearest].second += 1;
+			}
+		}
+
+		for (size_t i = 0; i < points.size(); ++i)
+		{
+			std::cout << regions[i].first.x << "," << regions[i].first.y << " : " << regions[i].second << '\n';
+			points[i] = regions[i].first / regions[i].second;
+		}
 		
+		for (const v2& pos : points)
+			map.get_tile(pos).character = 'b';
+
+		// mst
+		// std::vector<v2> connected;
+
+		// connected.emplace_back(points.back());
+		// points.pop_back();
+
+		// while (!points.empty())
+		// {
+		// 	v2 bestFrom;
+		// 	int bestToIndex = -1;
+		// 	int bestDistance = std::numeric_limits<int>::max();
+
+		// 	for (const auto& from : connected)
+		// 	{
+		// 		for (std::size_t i = 0; i < points.size(); ++i)
+		// 		{
+		// 			int distance = RLUtil::euclidean(points[i], from);
+
+		// 			if (distance < bestDistance)
+		// 			{
+		// 				bestFrom = from;
+		// 				bestToIndex = i;
+		// 				bestDistance = distance;
+		// 			}
+		// 		}
+		// 	}
+
+		// 	v2 to = points[bestToIndex];
+
+		// 	RLUtil::draw_wall(map, bestFrom, to);
+			
+		// 	connected.emplace_back(to);
+		// 	points.erase(points.begin() + bestToIndex);
+		// }
 	}
 };
