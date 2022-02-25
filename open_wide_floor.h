@@ -110,7 +110,7 @@ public:
         return layer;
     }
 
-    void cellular_automata_sloop(const Room room, const CA_params& params)
+    void cellular_automata(const Room room, const CA_params& params)
     {
         std::vector<TileFlag> room_seeds = fill_random(room, params.fill_percentage);
         
@@ -202,6 +202,21 @@ public:
 
             cave_paths.emplace_back(path);
         }
+
+        for (size_t i = 0; i < cave_paths.size()-1; i++)
+        {
+            const std::vector<v2>& doors = cave_paths[i];
+            const v2& door = doors[0];
+            const v2& next = cave_paths[i+1][0];
+
+            AStar pathfinding(map);
+            std::vector<v2> paths = pathfinding.draw_way(door, next, '.', Directions::CROSS_DIRECTIONS);
+
+            for (const v2& pos : paths)
+            {
+                map.get_tile(pos).character = '-';
+            }
+        }
     }
 
     std::vector<std::vector<v2>> determine_rooms(const Room& room)
@@ -224,9 +239,9 @@ public:
             return contains;
         };
 
-        for (size_t y = 0; y < room.size.y; y++)
+        for (int y = 0; y < room.size.y; y++)
         {
-            for (size_t x = 0; x < room.size.x; x++)
+            for (int x = 0; x < room.size.x; x++)
             {
                 const v2 pos = v2(x, y);
 

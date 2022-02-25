@@ -81,4 +81,8 @@ namespace RLUtil
 		}
 	};
 
+	void voronoi(const std::vector<v2>& points)
+	{
+		
+	}
 };

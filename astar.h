@@ -37,7 +37,7 @@ public:
 
     Map& map;
 
-    std::vector<v2> draw_way(v2 start, v2 end, const char avoid = '#', bool cross = false)
+    std::vector<v2> draw_way(v2 start, v2 end, const char avoid = '#', const std::vector<Directions>& dirs = Directions::OCT_DIRECTIONS)
     {
         std::priority_queue<TileNode, std::vector<TileNode>> possible_queue;
         std::vector<NaviOverlay> navi_overlay(map.size.x * map.size.y);
@@ -68,11 +68,7 @@ public:
             NaviOverlay& nav_node = map.get_by_coord<NaviOverlay>(navi_overlay, map.size, search_pos);
             nav_node.is_checked = true;
 
-            auto directions = Directions::OCT_DIRECTIONS;
-            if (cross)
-                directions = Directions::CROSS_DIRECTIONS;
-
-            for (auto dir : directions)
+            for (auto dir : dirs)
             {
                 v2 to_check = search_pos + dir.dir;
 
